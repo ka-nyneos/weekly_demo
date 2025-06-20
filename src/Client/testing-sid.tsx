@@ -1,6 +1,7 @@
 import React from "react";
 
-
+const sid="tired";
+const devs= " end 2 end "
 const TestingSid = () => {
     return (
         <div>TestingSid</div>
@@ -9,3 +10,4 @@ const TestingSid = () => {
 }
 
 export default TestingSid
+
