@@ -52,7 +52,7 @@ export default function ColumnPicker<T>({ table }: ColumnPickerProps<T>) {
       >
         <span>Columns</span>
         <ChevronDown
-          size={16}
+          size={20}
           className={open ? "transform rotate-180" : ""}
         />
       </button>
