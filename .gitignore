@@ -1,1 +1,3 @@
 node_modules/
+/src/Client/components/ExposureUpload/PreviewModal.tsx
+/src/Client/components/ExposureUpload/exp.tsx
