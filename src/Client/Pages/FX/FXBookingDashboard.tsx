@@ -1,60 +1,57 @@
 // src/Client/Pages/FXBookingDashboard.tsx
-import React, { FC, useMemo, useCallback } from "react";
-import Layout from "../../components/Layout/layout";
+import React, { FC, useMemo, useCallback, useState, useEffect } from "react"
+import Layout from "../../components/Layout/layout"
 import {
   FaTasks,
   FaFileInvoice,
   FaEdit,
   FaArrowCircleRight,
-} from "react-icons/fa";
+} from "react-icons/fa"
 
 type FxItem = {
-  bu: string;
-  bank: string;
-  currency: string;
-  poNo: string;
-  vendor: string;
-  exposureAmt: number;
-  spotRate: number;
-  isHedged: boolean;
-  bookingDate: string;
-  fxMaturityDate: string;
-  requestId: string;
-  bankRefNo: string;
-  status: string;
-  cnStatus: string;
-  bookingCharges: number;
-  comments: string;
-  amendmentStatus: string;
-};
+  status: string
+  cnStatus: string
+  bookingCharges: number
+  amendmentStatus: string
+  // the rest of these are just dummies so TypeScript is happy
+  bu: string; bank: string; currency: string; poNo: string
+  vendor: string; exposureAmt: number; spotRate: number
+  isHedged: boolean; bookingDate: string; fxMaturityDate: string
+  requestId: string; bankRefNo: string; comments: string
+}
 
-// ←– your real data array goes here
-const allFxData: FxItem[] = [ /* … */ ];
+// ——————————————————————————————————————————————————————
+// 1) SAMPLE DATA (so you get “8,3,3,1…” out of the box)
+// ——————————————————————————————————————————————————————
+const sampleFxData: FxItem[] = [
+  { status: "Sent", cnStatus: "Contract Note Received", bookingCharges:  5, amendmentStatus: "No Amendment", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Sent", cnStatus: "Contract Note Received", bookingCharges:  5, amendmentStatus: "Amendment Requested", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Sent", cnStatus: "Awaiting",                bookingCharges:  0, amendmentStatus: "Amendment Confirmed", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Confirmed", cnStatus: "Awaiting",            bookingCharges: 10, amendmentStatus: "No Amendment", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Confirmed", cnStatus: "Contract Note Discrepancy", bookingCharges:15, amendmentStatus: "No Amendment", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Confirmed", cnStatus: "Contract Note Received", bookingCharges: 7, amendmentStatus: "Amendment Requested", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Rejected", cnStatus: "Awaiting",            bookingCharges:  3, amendmentStatus: "No Amendment", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+  { status: "Confirmed", cnStatus: "Awaiting",            bookingCharges:10, amendmentStatus: "No Amendment", bu:"",bank:"",currency:"",poNo:"",vendor:"",exposureAmt:0,spotRate:0,isHedged:false,bookingDate:"",fxMaturityDate:"",requestId:"",bankRefNo:"",comments:"" },
+]
 
-// -------------------------------------
-// Utilities
-// -------------------------------------
-const currencyFormatter = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  minimumFractionDigits: 0,
-});
-
-// Navigate (preserves bucketing pattern)
-const useNavigateWithFilter = () => {
-  return useCallback((type: string, value: string) => {
-    sessionStorage.setItem(
-      "dashboardFilter",
-      JSON.stringify({ type, value })
-    );
-    window.location.href = "/detailed_view";
-  }, []);
-};
-
-// Aggregate metrics
-type Metrics = ReturnType<typeof computeMetrics>;
-function computeMetrics(data: FxItem[]) {
-  const m = {
+// ——————————————————————————————————————————————————————
+// 2) UTILS: compute metrics
+// ——————————————————————————————————————————————————————
+type Metrics = {
+  totalRequests: number
+  pendingBank: number
+  confirmed: number
+  rejected: number
+  cnReceived: number
+  cnAwaiting: number
+  cnDiscrepancies: number
+  totalCharges: number
+  totalAmendments: number
+  pendingAmendments: number
+  confirmedAmendments: number
+}
+function computeMetrics(data: FxItem[]): Metrics {
+  const m: Metrics = {
     totalRequests: 0,
     pendingBank: 0,
     confirmed: 0,
@@ -66,37 +63,77 @@ function computeMetrics(data: FxItem[]) {
     totalAmendments: 0,
     pendingAmendments: 0,
     confirmedAmendments: 0,
-  };
+  }
   data.forEach((i) => {
-    m.totalRequests++;
-    if (["Sent", "Awaiting Bank Response"].includes(i.status)) m.pendingBank++;
-    else if (i.status === "Confirmed") m.confirmed++;
-    else if (i.status === "Rejected") m.rejected++;
+    m.totalRequests++
+    if (["Sent", "Awaiting Bank Response", "Awaiting"].includes(i.status))
+      m.pendingBank++
+    else if (i.status === "Confirmed")
+      m.confirmed++
+    else if (i.status === "Rejected")
+      m.rejected++
 
-    if (i.cnStatus === "Contract Note Received") m.cnReceived++;
-    else if (i.cnStatus === "Awaiting") m.cnAwaiting++;
-    else if (i.cnStatus === "Contract Note Discrepancy") m.cnDiscrepancies++;
+    if (i.cnStatus === "Contract Note Received")
+      m.cnReceived++
+    else if (i.cnStatus === "Awaiting")
+      m.cnAwaiting++
+    else if (i.cnStatus === "Contract Note Discrepancy")
+      m.cnDiscrepancies++
 
-    m.totalCharges += i.bookingCharges;
+    m.totalCharges += i.bookingCharges
+
     if (i.amendmentStatus !== "No Amendment") {
-      m.totalAmendments++;
-      if (i.amendmentStatus === "Amendment Requested") m.pendingAmendments++;
+      m.totalAmendments++
+      if (i.amendmentStatus === "Amendment Requested")
+        m.pendingAmendments++
       else if (i.amendmentStatus === "Amendment Confirmed")
-        m.confirmedAmendments++;
+        m.confirmedAmendments++
     }
-  });
-  return m;
+  })
+  return m
 }
 
-// -------------------------------------
-// Reusable KPI Card
-// -------------------------------------
-interface KpiCardProps {
-  label: string;
-  value: number | string;
-  onClick?: VoidFunction;
+// ——————————————————————————————————————————————————————
+// 3) COUNT-UP HOOK
+// ——————————————————————————————————————————————————————
+function useCountUp(end: number, duration = 1200) {
+  const [value, setValue] = useState(0)
+  useEffect(() => {
+    let start: number | null = null
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp
+      const progress = Math.min((timestamp - start) / duration, 1)
+      setValue(Math.floor(progress * end))
+      if (progress < 1) window.requestAnimationFrame(step)
+    }
+    window.requestAnimationFrame(step)
+  }, [end, duration])
+  return value
 }
-const KpiCard: FC<KpiCardProps> = ({ label, value, onClick }) => (
+
+// pretty INR
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 0,
+})
+
+// preserve your original navigation pattern
+const useNavigateWithFilter = () =>
+  useCallback((type: string, value: string) => {
+    sessionStorage.setItem("dashboardFilter", JSON.stringify({ type, value }))
+    window.location.href = "/detailed_view"
+  }, [])
+
+// ——————————————————————————————————————————————————————
+// 4) KPI CARD + SECTION COMPONENTS (unchanged styling)
+// ——————————————————————————————————————————————————————
+interface KpiCardProps {
+  label: string
+  display: number | string
+  onClick?: VoidFunction
+}
+const KpiCard: FC<KpiCardProps> = ({ label, display, onClick }) => (
   <button
     onClick={onClick}
     disabled={!onClick}
@@ -106,26 +143,23 @@ const KpiCard: FC<KpiCardProps> = ({ label, value, onClick }) => (
       ${onClick ? "cursor-pointer hover:border-teal-400" : "opacity-90"}
     `}
   >
-    <div className="text-3xl font-bold text-teal-700 mb-1">{value}</div>
+    <div className="text-3xl font-bold text-teal-700 mb-1">{display}</div>
     <div className="text-sm text-gray-600">{label}</div>
   </button>
-);
+)
 
-// -------------------------------------
-// Section Wrapper
-// -------------------------------------
 interface SectionProps {
-  icon: React.ReactNode;
-  title: string;
+  icon: React.ReactNode
+  title: string
   items: Array<{
-    label: string;
-    value: number | string;
-    filterType?: string;
-    filterValue?: string;
-  }>;
+    label: string
+    value: number | string
+    filterType?: string
+    filterValue?: string
+  }>
 }
 const KpiSection: FC<SectionProps> = ({ icon, title, items }) => {
-  const navigate = useNavigateWithFilter();
+  const navigate = useNavigateWithFilter()
   return (
     <div className="mb-8">
       <h3 className="flex items-center text-xl font-semibold text-teal-800 mb-4">
@@ -137,7 +171,7 @@ const KpiSection: FC<SectionProps> = ({ icon, title, items }) => {
           <KpiCard
             key={it.label}
             label={it.label}
-            value={it.value}
+            display={it.value}
             onClick={
               it.filterType
                 ? () => navigate(it.filterType!, it.filterValue!)
@@ -147,26 +181,40 @@ const KpiSection: FC<SectionProps> = ({ icon, title, items }) => {
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-// -------------------------------------
-// Page Component
-// -------------------------------------
+// ——————————————————————————————————————————————————————
+// 5) PAGE!
+// ——————————————————————————————————————————————————————
 export default function FXBookingDashboard() {
-  const metrics = useMemo(() => computeMetrics(allFxData), []);
-  
+  // 5.1 compute raw metrics from sample data
+  const raw = useMemo(() => computeMetrics(sampleFxData), [])
+
+  // 5.2 create count-up values
+  const totalRequests     = useCountUp(raw.totalRequests)
+  const pendingBank       = useCountUp(raw.pendingBank)
+  const confirmed         = useCountUp(raw.confirmed)
+  const rejected          = useCountUp(raw.rejected)
+  const cnReceived        = useCountUp(raw.cnReceived)
+  const cnAwaiting        = useCountUp(raw.cnAwaiting)
+  const cnDiscrepancies   = useCountUp(raw.cnDiscrepancies)
+  const totalCharges      = useCountUp(raw.totalCharges)
+  const pendingAmendments = useCountUp(raw.pendingAmendments)
+  const confirmedAmends    = useCountUp(raw.confirmedAmendments)
+  const totalAmendments   = useCountUp(raw.totalAmendments)
+
   return (
     <Layout title="FX Forward Booking Confirmation Dashboard">
       {/* Forward Request Status */}
       <KpiSection
         icon={<FaTasks />}
-        title="Forward Request Status Overview"
+        title="Forward Request Status"
         items={[
-          { label: "Total Requests Sent", value: metrics.totalRequests, filterType: "status", filterValue: "All" },
-          { label: "Pending Bank Confirmation", value: metrics.pendingBank, filterType: "status", filterValue: "Awaiting Bank Response" },
-          { label: "Confirmed Bookings", value: metrics.confirmed, filterType: "status", filterValue: "Confirmed" },
-          { label: "Rejected Bookings", value: metrics.rejected, filterType: "status", filterValue: "Rejected" },
+          { label: "Total Requests Sent",         value: totalRequests,     filterType:"status",    filterValue:"All" },
+          { label: "Pending Bank Confirmation",   value: pendingBank,       filterType:"status",    filterValue:"Awaiting Bank Response" },
+          { label: "Confirmed Bookings",          value: confirmed,         filterType:"status",    filterValue:"Confirmed" },
+          { label: "Rejected Bookings",           value: rejected,          filterType:"status",    filterValue:"Rejected" },
         ]}
       />
 
@@ -175,10 +223,13 @@ export default function FXBookingDashboard() {
         icon={<FaFileInvoice />}
         title="Contract Note & Charges Status"
         items={[
-          { label: "Contract Notes Received", value: metrics.cnReceived, filterType: "cnStatus", filterValue: "Contract Note Received" },
-          { label: "Awaiting Contract Notes", value: metrics.cnAwaiting, filterType: "cnStatus", filterValue: "Awaiting" },
-          { label: "CN Discrepancies", value: metrics.cnDiscrepancies, filterType: "cnStatus", filterValue: "Contract Note Discrepancy" },
-          { label: "Total Booking Charges (YTD)", value: currencyFormatter.format(metrics.totalCharges) },
+          { label: "Contract Notes Received",     value: cnReceived,        filterType:"cnStatus",  filterValue:"Contract Note Received" },
+          { label: "Awaiting Contract Notes",     value: cnAwaiting,        filterType:"cnStatus",  filterValue:"Awaiting" },
+          { label: "CN Discrepancies",            value: cnDiscrepancies,   filterType:"cnStatus",  filterValue:"Contract Note Discrepancy" },
+          {
+            label: "Total Booking Charges (YTD)",
+            value: currencyFormatter.format(totalCharges),
+          },
         ]}
       />
 
@@ -187,21 +238,21 @@ export default function FXBookingDashboard() {
         icon={<FaEdit />}
         title="Amendment Tracking"
         items={[
-          { label: "Pending Amendments", value: metrics.pendingAmendments, filterType: "amendmentStatus", filterValue: "Amendment Requested" },
-          { label: "Confirmed Amendments", value: metrics.confirmedAmendments, filterType: "amendmentStatus", filterValue: "Amendment Confirmed" },
-          { label: "Total Amendment Requests", value: metrics.totalAmendments },
+          { label: "Pending Amendments",          value: pendingAmendments, filterType:"amendmentStatus", filterValue:"Amendment Requested" },
+          { label: "Confirmed Amendments",        value: confirmedAmends,    filterType:"amendmentStatus", filterValue:"Amendment Confirmed" },
+          { label: "Total Amendment Requests",    value: totalAmendments },
         ]}
       />
 
-      {/* View All CTA */}
+      {/* CTA */}
       <div className="text-center mt-6">
         <button
-          onClick={() => window.location.href = "/detailed_view"}
+          onClick={() => (window.location.href = "/detailed_view")}
           className="inline-flex items-center text-teal-700 hover:text-teal-900 font-medium transition"
         >
           View All Detailed Bookings <FaArrowCircleRight className="ml-2" />
         </button>
       </div>
     </Layout>
-  );
+  )
 }
