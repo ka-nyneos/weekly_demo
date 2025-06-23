@@ -9,7 +9,6 @@ import {
   type SortingState,
   type ColumnDef,
   type ColumnFiltersState,
-  type Column
 } from "@tanstack/react-table";
 
 import Layout from "../../components/Layout/layout";
@@ -177,44 +176,6 @@ function SortableHeader({
     </div>
   );
 }
-
-function SortButton<T>({ column, label }: { column: Column<T>; label: string }) {
-  const sorted = column.getIsSorted();
-  const arrow = sorted === "asc" ? "↑" : sorted === "desc" ? "↓" : "";
-  return (
-    <div
-      {...column.getToggleSortingHandler()}
-      className="w-full h-full flex items-center justify-center gap-1 cursor-pointer"
-    >
-      {label}{arrow}
-    </div>
-  );
-}
-
-// 2) Factory to make *any* column sortable—string or number:
-function makeSortableColumn<T extends object>(
-  key: keyof T,
-  label: string,
-  opts?: {
-    isNumeric?: boolean;
-    cell?: ColumnDef<T>["cell"];
-  }
-): ColumnDef<T> {
-  const col: ColumnDef<T> = {
-    accessorKey: key as string,
-    enableSorting: true,
-    header: ({ column }) => <SortButton column={column} label={label} />,
-  };
-  if (opts?.isNumeric) {
-    col.sortingFn = (rowA, rowB, columnId) =>
-      (rowA.getValue(columnId) as number) - (rowB.getValue(columnId) as number);
-  }
-  if (opts?.cell) {
-    col.cell = opts.cell;
-  }
-  return col;
-}
-
 
 export default function ExposureBucketing() {
   const [exposureType, setExposureType] = useState(exposureTypes[0]);
@@ -530,7 +491,10 @@ export default function ExposureBucketing() {
         
         >
         {/* filters */}
-        <ColumnPicker table={table} />
+        <div className="flex items-center gap-2 mb-4">
+          <label className="font-semibold">Columns Picker:</label>
+          <ColumnPicker table={table} />
+        </div>
         <div className="flex flex-wrap gap-4 mb-4">
           <div>
             <label className="font-semibold">Exposure Type:</label>
