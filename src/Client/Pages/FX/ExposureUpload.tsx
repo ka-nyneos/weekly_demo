@@ -4,7 +4,9 @@ import Layout from "../../components/Layout/layout";
 import { useMemo, useState, useCallback } from "react";
 import AllExposureRequest from "../../components/ExposureUpload/AllExposureRequest";
 import PendingRequest from "../../components/ExposureUpload/PendingRequest";
-
+import AddExposure from "../../components/ExposureUpload/AddExposure";
+// import PendingRequest from "../../components/ExposureUpload/exp";
+// 
 const useTabNavigation = (initialTab: string = 'existing') => {
   const [activeTab, setActiveTab] = useState(initialTab);
   
@@ -30,7 +32,11 @@ const TAB_CONFIG = [
   },
   {
     id: 'forwards',
-    label: 'pending Exposure Request',
+    label: 'Pending Exposure Request',
+  },
+  {
+    id: 'add',
+    label: 'Add Exposure',
   }
 ];
 
@@ -61,6 +67,8 @@ const ExposureUpload = () => {
         return <AllExposureRequest />;
       case 'forwards':
         return <PendingRequest />;
+      case 'add':
+        return <AddExposure />;
       default:
         return <AllExposureRequest />;
     }
@@ -68,7 +76,7 @@ const ExposureUpload = () => {
 
   return (
     <>
-      <Layout title="Exposure Upload & Approval Dashboard" showButton={true} buttonText="Add Exposure" onButtonClick={() => {alert("Button Clicked")}}>
+      <Layout title="Exposure Upload & Approval Dashboard" showButton={false}>
         
 
         <div className="mb-6 pt-4">

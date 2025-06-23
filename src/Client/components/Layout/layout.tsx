@@ -17,6 +17,12 @@ const Layout: React.FC<{ children: React.ReactNode } & LayoutProps> = ({
   buttonText = "Click Me",
   onButtonClick,
 }) => {
+
+  const [collapse, setCollapse] = React.useState(false);
+  const handleCollapse = () => {
+    setCollapse(!collapse);
+  }
+
   return (
     <div className="flex flex-col h-screen ">
       <nav className="h-16 bg-gray-800 text-white flex items-center px-6 shadow-md">
@@ -24,9 +30,11 @@ const Layout: React.FC<{ children: React.ReactNode } & LayoutProps> = ({
       </nav>
 
       <div className="flex flex-1">
-        <aside className="w-64 bg-gray-700 text-white p-4"></aside>
+        <aside className="w-64 text-white p-4">
+        </aside>
 
-        <main className="flex-1 p-6 bg-gray-100 overflow-y-auto">
+        <main className="flex-1 p-6 overflow-y-auto">
+          
           <div className="bg-white rounded-xl shadow-md p-6 h-full w-full">
             <div className="border-b pb-4 mb-10">
               <div className="flex items-center justify-between">

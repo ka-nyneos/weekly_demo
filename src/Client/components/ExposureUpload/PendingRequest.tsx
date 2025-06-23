@@ -1,4 +1,10 @@
-import React, { useState, useMemo } from "react";
+"use client";
+
+import React, { useState, useMemo, useEffect } from "react";
+import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import { Draggable } from "../utils/Draggable";
+import { Droppable } from "../utils/Droppable";
+
 import {
   useReactTable,
   getCoreRowModel,
@@ -7,12 +13,14 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import {
-//   MoreHorizontal,
+  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+
+import Button from "../ui/Button";
 
 // Define the data type
 interface ExposureRequest {
@@ -29,8 +37,48 @@ interface ExposureRequest {
   checkerComments: string;
 }
 
-// Mock data - empty array for headers only
-const mockData: ExposureRequest[] = [];
+// Mock data
+const mockData: ExposureRequest[] = [
+  {
+    id: "REQ-001",
+    refNo: "EXP-1001",
+    type: "LC",
+    bu: "Finance",
+    vendorBeneficiary: "Tata Steel Ltd",
+    amount: 1200000,
+    currency: "INR",
+    maturityExpiry: "2025-10-15",
+    linkedId: "LNK-301",
+    status: "Pending",
+    checkerComments: "",
+  },
+  {
+    id: "REQ-002",
+    refNo: "EXP-1002",
+    type: "Guarantee",
+    bu: "Logistics",
+    vendorBeneficiary: "Maersk Global",
+    amount: 450000,
+    currency: "USD",
+    maturityExpiry: "2025-12-01",
+    linkedId: "LNK-302",
+    status: "Approved",
+    checkerComments: "Verified documents. Approved.",
+  },
+  {
+    id: "REQ-003",
+    refNo: "EXP-1003",
+    type: "Loan",
+    bu: "Procurement",
+    vendorBeneficiary: "Hindustan Unilever",
+    amount: 800000,
+    currency: "EUR",
+    maturityExpiry: "2026-03-20",
+    linkedId: "LNK-303",
+    status: "Rejected",
+    checkerComments: "Missing vendor compliance form.",
+  },
+];
 
 const PendingRequest: React.FC = () => {
   const [data] = useState<ExposureRequest[]>(mockData);
@@ -38,6 +86,46 @@ const PendingRequest: React.FC = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+
+  // Separate state for filter values
+  const [statusFilterValue, setStatusFilterValue] = useState("");
+  const [buFilterValue, setBuFilterValue] = useState("");
+  const [typeFilterValue, setTypeFilterValue] = useState("");
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+
+  // State for applied filters
+  const [statusFilter, setStatusFilter] = useState("");
+  const [buFilter, setBuFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [globalFilter, setGlobalFilter] = useState("");
+
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (data.length && columnOrder.length === 0) {
+      const defaultOrder = [
+        "select",
+        "refNo",
+        "type",
+        "bu",
+        "vendorBeneficiary",
+        "amount",
+        "currency",
+        "maturityExpiry",
+        "linkedId",
+        "status",
+        "checkerComments",
+      ];
+      setColumnOrder(defaultOrder);
+    }
+  }, [data, columnOrder.length]);
+
+  const resetFilters = () => {
+    setStatusFilter("");
+    setBuFilter("");
+    setTypeFilter("");
+    setGlobalFilter("");
+  };
 
   const columns = useMemo<ColumnDef<ExposureRequest>[]>(
     () => [
@@ -152,76 +240,144 @@ const PendingRequest: React.FC = () => {
       {
         accessorKey: "checkerComments",
         header: "Checker Comments",
-        cell: ({ getValue }) => (
-          <span className="text-gray-700 max-w-xs truncate block">
-            {getValue() as string}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const initialValue = row.getValue("checkerComments");
+
+          const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            row.getValue("checkerComments");
+            row.original.checkerComments = e.target.value;
+          };
+
+          return (
+            <input
+              type="text"
+              className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-green-500 focus:ring-2"
+              defaultValue={initialValue as string}
+              onChange={onChange}
+            />
+          );
+        },
       },
       {
         id: "actions",
         header: "Actions",
-        // cell: ({ row }) => (
-        //   <ActionDropdown row={row.original} />
-        // ),
+        cell: ({ row }) => <ActionDropdown row={row.original} />,
         size: 80,
       },
     ],
     []
   );
 
+  const filteredData = useMemo(() => {
+    return data.filter((row) => {
+      return (
+        (!statusFilter ||
+          row.status.toLowerCase() === statusFilter.toLowerCase()) &&
+        (!buFilter || row.bu.toLowerCase() === buFilter.toLowerCase()) &&
+        (!typeFilter || row.type.toLowerCase() === typeFilter.toLowerCase()) &&
+        Object.values(row).some((val) =>
+          String(val).toLowerCase().includes(globalFilter.toLowerCase())
+        )
+      );
+    });
+  }, [data, statusFilter, buFilter, typeFilter, globalFilter]);
+
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     state: {
       pagination,
+      columnOrder,
     },
   });
+
+  const applyFilters = () => {
+    setStatusFilter(statusFilterValue);
+    setBuFilter(buFilterValue);
+    setTypeFilter(typeFilterValue);
+    setGlobalFilter(globalFilterValue);
+  };
 
   return (
     <div className="space-y-6">
       <h4 className="pb-2 border-b flex items-center justify-between text-lg font-semibold text-gray-800">
         Filter Exposure Request
       </h4>
+
       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Status
           </label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Currency
-          </label>
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-            <option value="">All Currencies</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
-            <option value="GBP">GBP</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date Range
-          </label>
-          <input
-            type="date"
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-          />
+            value={statusFilterValue}
+            onChange={(e) => setStatusFilterValue(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Business Unit
+          </label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            value={buFilterValue}
+            onChange={(e) => setBuFilterValue(e.target.value)}
+          >
+            <option value="">All BU</option>
+            <option value="Finance">Finance</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Procurement">Procurement</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Type of Exposure
+          </label>
+          <select
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            value={typeFilterValue}
+            onChange={(e) => setTypeFilterValue(e.target.value)}
+          >
+            <option value="">All Exposure</option>
+            <option value="LC">LC</option>
+            <option value="Guarantee">Guarantee</option>
+            <option value="Loan">Loan</option>
+          </select>
+        </div>
+
         <div className="flex items-end">
-          <button className="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
-            Apply Filters
-          </button>
+          <Button onClick={applyFilters}>
+            <span className="text-white">Apply Filters</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <input
+          type="text"
+          placeholder="Search..."
+          value={globalFilterValue}
+          onChange={(e) => setGlobalFilterValue(e.target.value)}
+          className="w-full px-3 py-2 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <div className="flex items-center justify-between w-full gap-2">
+          <Button onClick={applyFilters}>
+            <span className="text-white">Search</span>
+          </Button>
+
+          <Button color="Red" onClick={resetFilters}>
+            <span className="text-white">Reset</span>
+          </Button>
         </div>
       </div>
 
@@ -230,42 +386,64 @@ const PendingRequest: React.FC = () => {
           <h4 className="text-lg font-semibold text-gray-800">
             Exposure Requests Pending for Approval
           </h4>
+
           <div className="flex gap-2">
-            <button className="px-4 py-1.5 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 transition">
-              Approve selected
-            </button>
-            <button className="px-4 py-1.5 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 transition">
-              Reject selected
-            </button>
-            <button className="px-4 py-1.5 text-sm font-medium text-gray-800 bg-gray-200 rounded hover:bg-gray-300 transition">
+            <Button color="Green" categories="Medium">
+              Approve Selected
+            </Button>
+
+            <Button color="Red" categories="Medium">
+              Reject Selected
+            </Button>
+
+            <Button color="Blue" categories="Medium">
               Save Draft Comments
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Table */}
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-green-50">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{ width: header.getSize() }}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
+            <DndContext
+              onDragEnd={(event: DragEndEvent) => {
+                const { active, over } = event;
+                if (active.id !== over?.id) {
+                  const oldIndex = columnOrder.indexOf(active.id as string);
+                  const newIndex = columnOrder.indexOf(over?.id as string);
+                  const newOrder = [...columnOrder];
+                  newOrder.splice(oldIndex, 1);
+                  newOrder.splice(newIndex, 0, active.id as string);
+                  setColumnOrder(newOrder);
+                }
+              }}
+            >
+              <thead className="bg-gradient-to-b from-green-200 to-blue-100">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        style={{ width: header.getSize() }}
+                      >
+                        <Droppable id={header.column.id}>
+                          <Draggable id={header.column.id}>
+                            <div className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out">
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                            </div>
+                          </Draggable>
+                        </Droppable>
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+            </DndContext>
 
             <tbody className="bg-white divide-y divide-gray-200">
               {table.getRowModel().rows.length === 0 ? (
@@ -396,69 +574,68 @@ const PendingRequest: React.FC = () => {
   );
 };
 
-// Action Dropdown Component
-// const ActionDropdown: React.FC<{ row: ExposureRequest }> = ({ row }) => {
-//   const [isOpen, setIsOpen] = useState(false);
+const ActionDropdown: React.FC<{ row: ExposureRequest }> = ({ row }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
-//   return (
-//     <div className="relative">
-//       <button
-//         onClick={() => setIsOpen(!isOpen)}
-//         className="p-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-//       >
-//         <MoreHorizontal className="w-4 h-4" />
-//       </button>
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="p-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
 
-//       {isOpen && (
-//         <>
-//           <div
-//             className="fixed inset-0 z-10"
-//             onClick={() => setIsOpen(false)}
-//           />
-//           <div className="absolute right-0 z-20 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200">
-//             <div className="py-1">
-//               <button
-//                 onClick={() => {
-//                   console.log('View details for:', row.refNo);
-//                   setIsOpen(false);
-//                 }}
-//                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-//               >
-//                 View Details
-//               </button>
-//               <button
-//                 onClick={() => {
-//                   console.log('Approve:', row.refNo);
-//                   setIsOpen(false);
-//                 }}
-//                 className="block w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-100"
-//               >
-//                 Approve
-//               </button>
-//               <button
-//                 onClick={() => {
-//                   console.log('Reject:', row.refNo);
-//                   setIsOpen(false);
-//                 }}
-//                 className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
-//               >
-//                 Reject
-//               </button>
-//               <button
-//                 onClick={() => {
-//                   console.log('Edit:', row.refNo);
-//                   setIsOpen(false);
-//                 }}
-//                 className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-//               >
-//                 Edit
-//               </button>
-//             </div>
-//           </div>
-//         </>
-//       )}
-//     </div>
-//   );
-// };
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="absolute right-0 z-20 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200">
+            <div className="py-1">
+              <button
+                onClick={() => {
+                  console.log("View details for:", row.refNo);
+                  setIsOpen(false);
+                }}
+                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                View Details
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Approve:", row.refNo);
+                  setIsOpen(false);
+                }}
+                className="block w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-100"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Reject:", row.refNo);
+                  setIsOpen(false);
+                }}
+                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Edit:", row.refNo);
+                  setIsOpen(false);
+                }}
+                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+              >
+                Edit
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export default PendingRequest;
