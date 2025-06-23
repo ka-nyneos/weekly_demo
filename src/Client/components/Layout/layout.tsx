@@ -13,7 +13,7 @@ type LayoutProps = {
 const Layout: React.FC<{ children: React.ReactNode } & LayoutProps> = ({
   children,
   title,
-  showButton = "false",
+  showButton = false,
   buttonText = "Click Me",
   onButtonClick,
 }) => {
