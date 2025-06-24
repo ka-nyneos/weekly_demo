@@ -1,7 +1,9 @@
 // src/components/ColumnPicker.tsx
 import React, { useState, useRef, useEffect } from "react";
 import type { Table } from "@tanstack/table-core";
+
 import { ChevronDown,MoreVertical } from "lucide-react";
+
 
 interface ColumnPickerProps<T> {
   table: Table<T>;
@@ -22,7 +24,7 @@ export default function ColumnPicker<T>({ table }: ColumnPickerProps<T>) {
     return () => window.removeEventListener("mousedown", onClick);
   }, [open]);
 
-  // 2) define your "always-on" defaults here:
+
   const defaultVisibleColumnIds = [
     "poNumber",
     "client",
@@ -46,12 +48,14 @@ export default function ColumnPicker<T>({ table }: ColumnPickerProps<T>) {
         onClick={() => setOpen((o) => !o)}
         className="
           ml-2 flex items-center space-x-1
+
           bg-transparent px-2 py-1 rounded text-sm
           focus:outline-none hover:bg-gray-50
         "
       >
         
         <MoreVertical
+
           size={20}
           className={open ? "transform rotate-180" : ""}
         />
@@ -60,7 +64,9 @@ export default function ColumnPicker<T>({ table }: ColumnPickerProps<T>) {
       {open && (
         <div
           className="
+
             absolute left-0 top-full mt-3
+
             w-56 max-h-64 overflow-auto
             bg-white border rounded shadow-lg z-50
           "

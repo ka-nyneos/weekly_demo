@@ -8,6 +8,9 @@ import HedgingProposal from "./Client/Pages/FX/HedgingProposal";
 import HedgingDashboard from "./Client/Pages/FX/HedgingDashboard";
 import FXForwardBookingForm from "./Client/Pages/FX/FXForwardBookingForm";
 
+import FXBookingDashboard from "./Client/Pages/FX/FXBookingDashboard";
+
+
 function App() {
     return (
         <BrowserRouter>
@@ -20,6 +23,7 @@ function App() {
                 <Route path="/hedging-proposal" element={<HedgingProposal />}></Route>
                 <Route path="/hedging-dashboard" element={<HedgingDashboard />}></Route>
                 <Route path="/fxbooking" element={<FXForwardBookingForm />}></Route>
+
             </Routes>
         </BrowserRouter>
     );

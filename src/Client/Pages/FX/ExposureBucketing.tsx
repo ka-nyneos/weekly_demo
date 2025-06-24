@@ -6,7 +6,9 @@ import {
   getFilteredRowModel,
   flexRender,
   getSortedRowModel,
+
   getPaginationRowModel,
+
   type SortingState,
   type ColumnDef,
   type ColumnFiltersState,
@@ -19,6 +21,7 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import Button from "../../components/ui/Button";
+
 import Layout from "../../components/Layout/layout";
 import EditableWithHistory from "../../components/ExposureBucketComponents/EditableWithHistory";
 import ColumnPicker from "../../components/ExposureBucketComponents/ColumnPicker";
@@ -39,6 +42,7 @@ import {
 } from "@dnd-kit/sortable";
 
 import { CSS } from "@dnd-kit/utilities";
+
 
 // --- constants & types ---
 const exposureTypes = ["Purchase Order (PO)", "Letter of Credit (LC)"];
@@ -184,17 +188,21 @@ function SortableHeader({
   );
 }
 
-export default function ExposureBucketings() {
+
+export default function ExposureBucketing() {
+
   const [exposureType, setExposureType] = useState(exposureTypes[0]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [effectiveDate, setEffectiveDate] = useState("2025-05-22");
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
+
   const [pagination, setPagination] = useState({
       pageIndex: 0,
       pageSize: 10,
     });
+
 
   const defaultVisibility: Record<string, boolean> = {
     poNumber: true,
@@ -219,10 +227,14 @@ export default function ExposureBucketings() {
 
   const [poData, setPoData] = useState<POData[]>(defaultPOData);
   const [originalData, setOriginalData] = useState<POData[]>(defaultPOData);
+
   const [openCell, setOpenCell] = useState<{
     row: number;
     key: keyof POData;
   } | null>(null);
+
+  
+
 
   const [bgColor, setBgColor] = useState("bg-white-400");
 
@@ -296,6 +308,7 @@ export default function ExposureBucketings() {
     const base: ColumnDef<POData>[] = [
       {
         accessorKey: "poNumber",
+
         header: () => <span className="font-medium text-left">PO Number</span>,
       },
       {
@@ -321,14 +334,18 @@ export default function ExposureBucketings() {
       {
         accessorKey: "currency",
         header: () => <span className="font-medium">Currency</span>,
+
+      
       },
       {
         accessorKey: "amount",
         header: ({ column }) => (
           <button
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+
             className="text-left font-medium"
-          >
+
+
             PO Amount
             {{
               asc: "↑",
@@ -345,7 +362,9 @@ export default function ExposureBucketings() {
         header: ({ column }) => (
           <button
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+<
             className="text-left font-medium"
+
           >
             Advance Given / Received
             {{
@@ -372,9 +391,11 @@ export default function ExposureBucketings() {
 
       {
         accessorKey: "inco",
+
         header: () => (
           <span className="font-medium whitespace-nowrap">INCO Term</span>
         ),
+
         cell: ({ row }) => (
           <EditableWithHistory<POData>
             rowIdx={row.index}
@@ -398,7 +419,9 @@ export default function ExposureBucketings() {
       { key: "m6p", label: "> 6 Months" },
     ].map(({ key, label }) => ({
       accessorKey: key,
+
       header: () => <span className="font-medium">{label}</span>,
+
       cell: ({ row }) => (
         <EditableWithHistory<POData>
           rowIdx={row.index}
@@ -415,6 +438,7 @@ export default function ExposureBucketings() {
       accessorKey: "remainingPct",
       id: "remainingPct",
       header: () => <span className="font-medium">Remaining %</span>,
+
       cell: ({ row }) => {
         const { amount, advance, m1, m2, m3, m4to6, m6p } = row.original;
         const allocated = advance + m1 + m2 + m3 + m4to6 + m6p;
@@ -439,7 +463,9 @@ export default function ExposureBucketings() {
 
     const remarksCol: ColumnDef<POData> = {
       accessorKey: "remarks",
+
       header: () => <span className="font-medium">Remarks</span>,
+
       cell: ({ row }) => (
         <EditableWithHistory<POData>
           rowIdx={row.index}
@@ -454,7 +480,9 @@ export default function ExposureBucketings() {
     };
 
     return [...base, ...months, percentageCol, remarksCol];
+
   }, [handlePOInputChange, originalData, openCell]);
+
 
   // init column order
   useEffect(() => {
@@ -462,6 +490,7 @@ export default function ExposureBucketings() {
       setColumnOrder(poColumns.map((c) => c.accessorKey as string));
     }
   }, [poColumns, columnOrder]);
+
 
   const table = useReactTable({
     data: poData,
@@ -476,6 +505,7 @@ export default function ExposureBucketings() {
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     getSortedRowModel: getSortedRowModel(),
+
   });
 
   const setFilter = (id: string, value: string) =>
@@ -491,6 +521,7 @@ export default function ExposureBucketings() {
   );
 
   return (
+
     <Layout title="Exposure Bucketing Table">
       <div className="mb-6 pt-4">
         <div className="flex space-x-1 border-b border-gray-200">
@@ -511,6 +542,7 @@ export default function ExposureBucketings() {
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+
               value={exposureType}
               onChange={(e) => setExposureType(e.target.value)}
             >
@@ -528,6 +560,7 @@ export default function ExposureBucketings() {
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+
               onChange={(e) => setFilter("bu", e.target.value)}
             >
               <option value="">All</option>
@@ -539,12 +572,14 @@ export default function ExposureBucketings() {
             </select>
           </div>
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Currency:
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+
               onChange={(e) => setFilter("currency", e.target.value)}
             >
               <option value="">All</option>
@@ -556,12 +591,14 @@ export default function ExposureBucketings() {
             </select>
           </div>
 
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Payable / Receivable:
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+
               onChange={(e) => setFilter("type", e.target.value)}
             >
               <option value="">All</option>
@@ -572,6 +609,7 @@ export default function ExposureBucketings() {
               ))}
             </select>
           </div>
+
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -582,10 +620,12 @@ export default function ExposureBucketings() {
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+
               value={effectiveDate}
               onChange={(e) => setEffectiveDate(e.target.value)}
             />
           </div>
+
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -596,9 +636,11 @@ export default function ExposureBucketings() {
               onChange={(e) => setFilter("client", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder="Search..."
+
             />
           </div>
         </div>
+
 
         <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
           <div className="p-4 border-b flex items-center justify-between">
@@ -773,6 +815,7 @@ export default function ExposureBucketings() {
           </div>
         </div>
       </div>
+
     </Layout>
   );
 }
