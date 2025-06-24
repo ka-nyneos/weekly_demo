@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Button from "../ui/Button";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
+import ColumnPicker from "../ExposureBucketComponents/ColumnPicker";
 // import {
 //   SortableContext,
 //   verticalListSortingStrategy,
@@ -323,7 +324,6 @@ const AllExposureRequest: React.FC = () => {
         Filter Exposure Request
       </h4>
 
-      
       <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -399,7 +399,16 @@ const AllExposureRequest: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border">
-        <div className="p-4 border-b flex items-center justify-between">
+        {/* <div className="p-4 border-b flex items-center justify-between">
+          <h4 className="text-lg font-semibold text-gray-800">
+            Exposure Requests
+          </h4>
+        </div> */}
+
+        <div className="flex items-center justify-start gap-2">
+          <div className="mt-4">
+            <ColumnPicker table={table} />
+          </div>
           <h4 className="text-lg font-semibold text-gray-800">
             Exposure Requests
           </h4>

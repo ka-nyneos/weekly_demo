@@ -6,11 +6,19 @@ import {
   getFilteredRowModel,
   flexRender,
   getSortedRowModel,
+  getPaginationRowModel,
   type SortingState,
   type ColumnDef,
   type ColumnFiltersState,
 } from "@tanstack/react-table";
 
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import Button from "../../components/ui/Button";
 import Layout from "../../components/Layout/layout";
 import EditableWithHistory from "../../components/ExposureBucketComponents/EditableWithHistory";
 import ColumnPicker from "../../components/ExposureBucketComponents/ColumnPicker";
@@ -31,7 +39,6 @@ import {
 } from "@dnd-kit/sortable";
 
 import { CSS } from "@dnd-kit/utilities";
-
 
 // --- constants & types ---
 const exposureTypes = ["Purchase Order (PO)", "Letter of Credit (LC)"];
@@ -177,13 +184,17 @@ function SortableHeader({
   );
 }
 
-export default function ExposureBucketing() {
+export default function ExposureBucketings() {
   const [exposureType, setExposureType] = useState(exposureTypes[0]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [effectiveDate, setEffectiveDate] = useState("2025-05-22");
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState({
+      pageIndex: 0,
+      pageSize: 10,
+    });
 
   const defaultVisibility: Record<string, boolean> = {
     poNumber: true,
@@ -208,7 +219,10 @@ export default function ExposureBucketing() {
 
   const [poData, setPoData] = useState<POData[]>(defaultPOData);
   const [originalData, setOriginalData] = useState<POData[]>(defaultPOData);
-  const [openCell, setOpenCell] = useState<{row: number; key: keyof POData} | null>(null);
+  const [openCell, setOpenCell] = useState<{
+    row: number;
+    key: keyof POData;
+  } | null>(null);
 
   const [bgColor, setBgColor] = useState("bg-white-400");
 
@@ -282,40 +296,38 @@ export default function ExposureBucketing() {
     const base: ColumnDef<POData>[] = [
       {
         accessorKey: "poNumber",
-        header: () => <span className="font-semibold">PO Number</span>,
+        header: () => <span className="font-medium text-left">PO Number</span>,
       },
       {
         accessorKey: "client",
-        header: () => <span className="font-semibold">Client / Vendor</span>,
+        header: () => <span className="font-medium">Client / Vendor</span>,
       },
       {
         accessorKey: "type",
-        header: () => (
-          <span className="font-semibold">Payable / Receivable</span>
-        ),
+        header: () => <span className="font-medium">Payable / Receivable</span>,
       },
       {
         accessorKey: "bu",
-        header: () => <span className="font-semibold">BU</span>,
+        header: () => <span className="font-medium">BU</span>,
       },
       {
         accessorKey: "details",
-        header: () => <span className="font-semibold">PO Details</span>,
+        header: () => <span className="font-medium">PO Details</span>,
       },
       {
         accessorKey: "date",
-        header: () => <span className="font-semibold">PO Maturity Date</span>,
+        header: () => <span className="font-medium">PO Maturity Date</span>,
       },
       {
         accessorKey: "currency",
-        header: () => <span className="font-semibold">Currency</span>,
+        header: () => <span className="font-medium">Currency</span>,
       },
       {
         accessorKey: "amount",
         header: ({ column }) => (
           <button
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full h-full flex items-center justify-center gap-1"
+            className="text-left font-medium"
           >
             PO Amount
             {{
@@ -333,7 +345,7 @@ export default function ExposureBucketing() {
         header: ({ column }) => (
           <button
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="w-full h-full flex items-center justify-center gap-1"
+            className="text-left font-medium"
           >
             Advance Given / Received
             {{
@@ -360,7 +372,9 @@ export default function ExposureBucketing() {
 
       {
         accessorKey: "inco",
-        header: () => <span className="font-semibold whitespace-nowrap">INCO Term</span>,
+        header: () => (
+          <span className="font-medium whitespace-nowrap">INCO Term</span>
+        ),
         cell: ({ row }) => (
           <EditableWithHistory<POData>
             rowIdx={row.index}
@@ -384,7 +398,7 @@ export default function ExposureBucketing() {
       { key: "m6p", label: "> 6 Months" },
     ].map(({ key, label }) => ({
       accessorKey: key,
-      header: () => <span className="font-semibold">{label}</span>,
+      header: () => <span className="font-medium">{label}</span>,
       cell: ({ row }) => (
         <EditableWithHistory<POData>
           rowIdx={row.index}
@@ -400,7 +414,7 @@ export default function ExposureBucketing() {
     const percentageCol: ColumnDef<POData> = {
       accessorKey: "remainingPct",
       id: "remainingPct",
-      header: () => <span className="font-semibold">Remaining %</span>,
+      header: () => <span className="font-medium">Remaining %</span>,
       cell: ({ row }) => {
         const { amount, advance, m1, m2, m3, m4to6, m6p } = row.original;
         const allocated = advance + m1 + m2 + m3 + m4to6 + m6p;
@@ -425,7 +439,7 @@ export default function ExposureBucketing() {
 
     const remarksCol: ColumnDef<POData> = {
       accessorKey: "remarks",
-      header: () => <span className="font-semibold">Remarks</span>,
+      header: () => <span className="font-medium">Remarks</span>,
       cell: ({ row }) => (
         <EditableWithHistory<POData>
           rowIdx={row.index}
@@ -440,7 +454,7 @@ export default function ExposureBucketing() {
     };
 
     return [...base, ...months, percentageCol, remarksCol];
-  },[handlePOInputChange, originalData, openCell]);
+  }, [handlePOInputChange, originalData, openCell]);
 
   // init column order
   useEffect(() => {
@@ -449,28 +463,19 @@ export default function ExposureBucketing() {
     }
   }, [poColumns, columnOrder]);
 
-
-
-
-
-
   const table = useReactTable({
     data: poData,
     columns: poColumns,
-    state: { columnFilters, columnOrder ,columnVisibility,sorting,},
+    state: { pagination,columnFilters, columnOrder, columnVisibility, sorting },
     onColumnFiltersChange: setColumnFilters,
     onColumnOrderChange: setColumnOrder,
-    onColumnVisibilityChange:setColumnVisibility,
-
+    onColumnVisibilityChange: setColumnVisibility,
     onSortingChange: setSorting,
-
-
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
     getSortedRowModel: getSortedRowModel(),
-
-    
   });
 
   const setFilter = (id: string, value: string) =>
@@ -486,20 +491,26 @@ export default function ExposureBucketing() {
   );
 
   return (
-    <Layout
-        title="Exposure Bucketing Table"
-        
-        >
-        {/* filters */}
-        <div className="flex items-center gap-2 mb-4">
+    <Layout title="Exposure Bucketing Table">
+      <div className="mb-6 pt-4">
+        <div className="flex space-x-1 border-b border-gray-200">
+          <h4 className="pb-4 flex items-center justify-between text-lg font-semibold text-gray-800">
+            Filter Exposure Request
+          </h4>
+        </div>
+
+        <div className="mt-[1rem] mb-[1rem]">
           <label className="font-semibold">Columns Picker:</label>
           <ColumnPicker table={table} />
         </div>
-        <div className="flex flex-wrap gap-4 mb-4">
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
-            <label className="font-semibold">Exposure Type:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Exposure Type
+            </label>
             <select
-              className="ml-2 border px-2 py-1 rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={exposureType}
               onChange={(e) => setExposureType(e.target.value)}
             >
@@ -510,10 +521,13 @@ export default function ExposureBucketing() {
               ))}
             </select>
           </div>
+
           <div>
-            <label className="font-semibold">Business Unit:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Business Unit
+            </label>
             <select
-              className="ml-2 border px-2 py-1 rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               onChange={(e) => setFilter("bu", e.target.value)}
             >
               <option value="">All</option>
@@ -524,10 +538,13 @@ export default function ExposureBucketing() {
               ))}
             </select>
           </div>
+
           <div>
-            <label className="font-semibold">Currency:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Currency:
+            </label>
             <select
-              className="ml-2 border px-2 py-1 rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               onChange={(e) => setFilter("currency", e.target.value)}
             >
               <option value="">All</option>
@@ -538,10 +555,13 @@ export default function ExposureBucketing() {
               ))}
             </select>
           </div>
+
           <div>
-            <label className="font-semibold">Payable / Receivable:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Payable / Receivable:
+            </label>
             <select
-              className="ml-2 border px-2 py-1 rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               onChange={(e) => setFilter("type", e.target.value)}
             >
               <option value="">All</option>
@@ -552,119 +572,207 @@ export default function ExposureBucketing() {
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
-            <label className="font-semibold">Effective Date:</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Effective Date:
+            </label>
             <input
               type="date"
-              className="ml-2 border px-2 py-1 rounded"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               value={effectiveDate}
               onChange={(e) => setEffectiveDate(e.target.value)}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <label className="font-semibold">Search Vendor/Beneficiary:</label>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Search Vendor/Beneficiary:
+            </label>
             <input
               type="text"
               onChange={(e) => setFilter("client", e.target.value)}
-              className="border px-2 py-1 rounded"
-              placeholder="Enter name"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              placeholder="Search..."
             />
           </div>
         </div>
 
-        {/* table */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={({ active, over }) => {
-            if (!over || active.id === over.id) return;
-            const oldI = columnOrder.indexOf(active.id as string);
-            const newI = columnOrder.indexOf(over.id as string);
-            setColumnOrder(arrayMove(columnOrder, oldI, newI));
-          }}
-        >
-          <SortableContext
-            items={columnOrder}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="overflow-x-auto w-full">
-              <table className="table-fixed w-max border border-collapse rounded-lg shadow-sm text-sm">
-                {/* <table className="table-fixed min-w-[1200px] border …"> */}
+        <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
+          <div className="p-4 border-b flex items-center justify-between">
+            <h4 className="text-lg font-semibold text-gray-800">
+              Exposure Bucketing
+            </h4>
 
-                <colgroup>
-                  {table.getVisibleLeafColumns().map(col => (
-                    <col key={col.id} className="w-[150px]" />
-                  ))}
-                </colgroup>
-                <thead className="bg-gradient-to-b from-green-200   to-blue-100 text-md text-black hover:bg-blue-300">
-                  {table.getHeaderGroups().map((hg) => (
-                    <tr key={hg.id}>
-                      {hg.headers.map((h) => (
-                        <th
-                          key={h.id}
-                          className="p-3 text-center border border-gray-300 font-semibold cursor-move rounded transition duration-150 ease-in-out group"
-                        >
-                          <SortableHeader id={h.column.id}>
-                            {/* inline-block so bg only wraps text */}
-                            <span className="inline-block px-1 rounded group-hover:bg-green-200">
-                              {flexRender(
-                                h.column.columnDef.header,
-                                h.getContext()
-                              )}
-                            </span>
-                          </SortableHeader>
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
-                </thead>
-                <tbody>
-                  {table.getRowModel().rows.map((row) => (
-                    <tr key={row.id} className="hover:bg-green-50 transition">
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} className="border p-2 text-center">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </SortableContext>
-        </DndContext>
+            <div className="flex gap-2">
 
-        {/* actions */}
-        <div className="flex justify-center mt-6 gap-4 flex-wrap">
-          <button
+            <Button color="Green" categories="Medium"
             onClick={() => alert("Bucketing Saved")}
-            className="px-4 py-2 bg-[#00674b] text-white rounded-lg hover:bg-green-700"
-          >
-            Save
-          </button>
-          <button
+            >
+              Save
+            </Button>
+
+            <Button color="Red" categories="Medium"
             onClick={handleReset}
-            className="print bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Reset
-          </button>
-          <button
+            >
+              Reset
+            </Button>
+
+            <Button color="Blue" categories="Medium"
             onClick={() => window.print()}
-            className="print bg-blue-900 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            Print
-          </button>
-          <button className="print bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
-            Cancel
-          </button>
-          <button className="print bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600">
-            Clear Data
-          </button>
+            >
+              print
+            </Button>
+
+            <Button color="Red" categories="Medium">
+              Cancel
+            </Button>
+
+            <Button color="Blue" categories="Medium">
+              Clear Data
+            </Button>
+          </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="table-fixed w-max min-w-full divide-y divide-gray-200">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={({ active, over }) => {
+                  if (!over || active.id === over.id) return;
+                  const oldI = columnOrder.indexOf(active.id as string);
+                  const newI = columnOrder.indexOf(over.id as string);
+                  setColumnOrder(arrayMove(columnOrder, oldI, newI));
+                }}
+              >
+                <SortableContext
+                  items={columnOrder}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <colgroup>
+                    {table.getVisibleLeafColumns().map((col) => (
+                      <col key={col.id} className="font-medium min-w-[150px]" />
+                    ))}
+                  </colgroup>
+                  <thead className="text-left font-medium bg-gradient-to-b from-green-200 to-blue-100">
+                    {table.getHeaderGroups().map((hg) => (
+                      <tr key={hg.id}>
+                        {hg.headers.map((h) => (
+                          <th
+                            key={h.id}
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            <SortableHeader id={h.column.id}>
+                              {/* inline-block so bg only wraps text */}
+                              <div className="cursor-move font-medium hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out">
+                                {flexRender(
+                                  h.column.columnDef.header,
+                                  h.getContext()
+                                )}
+                              </div>
+                            </SortableHeader>
+                          </th>
+                        ))}
+                      </tr>
+                    ))}
+                  </thead>
+                </SortableContext>
+              </DndContext>
+
+              <tbody className="bg-white divide-y divide-gray-200">
+                {table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="hover:bg-green-50 transition">
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        className="px-6 py-3 whitespace-nowrap text-sm"
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">
+                Showing{" "}
+                {table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                  1}{" "}
+                to{" "}
+                {Math.min(
+                  (table.getState().pagination.pageIndex + 1) *
+                    table.getState().pagination.pageSize,
+                  table.getCoreRowModel().rows.length
+                )}{" "}
+                of {table.getCoreRowModel().rows.length} results
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <select
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => {
+                  table.setPageSize(Number(e.target.value));
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <option key={pageSize} value={pageSize}>
+                    Show {pageSize}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <span className="px-3 py-1 text-sm text-gray-700">
+                  Page {table.getState().pagination.pageIndex + 1} of{" "}
+                  {table.getPageCount()}
+                </span>
+
+                <button
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      
+      </div>
     </Layout>
   );
 }
