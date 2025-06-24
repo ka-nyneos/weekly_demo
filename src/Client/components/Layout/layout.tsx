@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
   buttonText = "Click Me",
   onButtonClick,
 }) => {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   const sidebarWidth = collapsed ? "4rem" : "16rem"; 
   return (
