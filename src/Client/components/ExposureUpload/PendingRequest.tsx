@@ -4,6 +4,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
 import { Draggable } from "../utils/Draggable";
 import { Droppable } from "../utils/Droppable";
+import ColumnPicker from "../ExposureBucketComponents/ColumnPicker";
 
 import {
   useReactTable,
@@ -383,9 +384,15 @@ const PendingRequest: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-4 border-b flex items-center justify-between">
-          <h4 className="text-lg font-semibold text-gray-800">
-            Exposure Requests Pending for Approval
-          </h4>
+          
+          <div className="flex items-center justify-between gap-2">
+            <div className="mt-4">
+              <ColumnPicker table={table} />
+            </div>
+            <h4 className="text-lg font-semibold text-gray-800">
+              Exposure Bucketing
+            </h4>
+          </div>
 
           <div className="flex gap-2">
             <Button color="Green" categories="Medium">

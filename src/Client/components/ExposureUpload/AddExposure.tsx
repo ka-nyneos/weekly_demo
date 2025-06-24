@@ -32,7 +32,7 @@ interface UploadedFile {
   hasMissingValues?: boolean;
   rowCount?: number;
   columnCount?: number;
-  file?: File; // Store the actual file for preview
+  file?: File; 
 }
 
 const formatFileSize = (size: number) => {

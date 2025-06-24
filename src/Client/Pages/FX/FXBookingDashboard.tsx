@@ -1,5 +1,7 @@
 // src/Client/Pages/FXBookingDashboard.tsx
-import React, { FC, useMemo, useCallback, useState, useEffect } from "react"
+
+import React, {  useMemo, useCallback, useState, useEffect } from "react"
+
 import Layout from "../../components/Layout/layout"
 import {
   FaTasks,
