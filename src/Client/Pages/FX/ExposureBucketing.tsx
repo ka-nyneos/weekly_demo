@@ -499,11 +499,7 @@ export default function ExposureBucketings() {
           </h4>
         </div>
 
-        <div className="mt-[1rem] mb-[1rem]">
-          <label className="font-semibold">Columns Picker:</label>
-          <ColumnPicker table={table} />
-        </div>
-
+        
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
