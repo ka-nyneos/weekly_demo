@@ -8,7 +8,7 @@ import HedgingProposal from "./Client/Pages/FX/HedgingProposal";
 import HedgingDashboard from "./Client/Pages/FX/HedgingDashboard";
 import FXForwardBookingForm from "./Client/Pages/FX/FXForwardBookingForm";
 
-import FXBookingDashboard from "./Client/Pages/FX/FXBookingDashboard";
+// import FXBookingDashboard from "./Client/Pages/FX/FXBookingDashboard";
 
 
 function App() {

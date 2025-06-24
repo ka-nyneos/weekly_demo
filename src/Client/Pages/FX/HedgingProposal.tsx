@@ -368,7 +368,7 @@ export default function HedgingProposalGrid() {
             </select>
           </div>
 
-          
+          </div>
 
         <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
           <div className="p-4 border-b flex items-center justify-between">
