@@ -20,7 +20,7 @@ const Layout: React.FC<LayoutProps> = ({
   buttonText = "Click Me",
   onButtonClick,
 }) => {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   const sidebarWidth = collapsed ? "4rem" : "16rem"; 
   return (
@@ -29,18 +29,20 @@ const Layout: React.FC<LayoutProps> = ({
       <Navbar collapsed={collapsed} />
 
       <main
-        className={`mt-[1.75rem] transition-all duration-300 pt-[4rem] p-6 bg-gray-100 min-h-screen`}
+        className={`mt-[1.75rem] transition-all duration-500 pt-[4rem] p-6 bg-gray-100 min-h-screen`}
         style={{ marginLeft: sidebarWidth }}
       >
         <div className="bg-white rounded-xl shadow-md p-6 h-full w-full">
           <div className="border-b pb-4 mb-10">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold text-black">{title}</h1>
+              <div>
               {showButton && (
                 <Button onClick={onButtonClick}>
                   <span className="text-white">{buttonText}</span>
                 </Button>
               )}
+              </div>
             </div>
           </div>
           {children}

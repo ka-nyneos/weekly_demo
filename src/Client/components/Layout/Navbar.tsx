@@ -9,9 +9,11 @@ const Navbar: React.FC<NavbarProps> = ({ collapsed }) => {
     <nav
       className={`fixed top-0 ${
         collapsed ? "left-[4rem]" : "left-[16rem]"
-      } right-0 h-[4rem] bg-gray-800 text-white flex items-center px-[1.5rem] shadow-md z-10 transition-all duration-300`}
+      } right-0 h-[4rem] bg-gray-800 text-white flex items-center px-[1.5rem] shadow-md z-10 transition-all duration-500`}
     >
-      <h1 className="text-xl font-semibold">My Navbar</h1>
+      <h1 className="text-xl font-semibold">
+        CASH INVOICE
+      </h1>
     </nav>
   );
 };
