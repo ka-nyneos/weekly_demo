@@ -1,6 +1,11 @@
 import Layout from "../../components/Layout/layout";
 import Button from "../../components/ui/Button";
-
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
@@ -15,6 +20,7 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
+  getPaginationRowModel,
   useReactTable,
   getSortedRowModel,
   type SortingState,
@@ -90,6 +96,10 @@ export default function HedgingProposalGrid() {
     { id: "bu", value: "" },
   ]);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   useEffect(() => {
     fetchBUData().then(setData);
@@ -140,9 +150,9 @@ export default function HedgingProposalGrid() {
         id: "bu",
         header: () => {
           return (
-            <div className="flex flex-col items-center">
-              <span className="font-semibold text-black">BU</span>
-              <select
+            <div className="flex items-center justify-start gap-2">
+              <span className="font-semibold text-left">BU</span>
+              {/* <select
                 value={
                   table.getState().columnFilters.find((f) => f.id === "bu")
                     ?.value || ""
@@ -155,12 +165,14 @@ export default function HedgingProposalGrid() {
                 <option value="">All</option>
                 <option value="BU1">BU1</option>
                 <option value="BU2">BU2</option>
-              </select>
+              </select> */}
             </div>
           );
         },
         cell: (info) => (
-          <span className="font-semibold">{info.getValue() as string}</span>
+          <span className="font-semibold text-left">
+            {info.getValue() as string}
+          </span>
         ),
       },
 
@@ -176,8 +188,8 @@ export default function HedgingProposalGrid() {
 
           return (
             <div className="relative">
-              <div className="flex items-center justify-center gap-1">
-                <span className="font-semibold">Currency</span>
+              <div className="flex items-center  gap-1">
+                <span className="font-semibold text-left">Currency</span>
                 <button
                   onClick={() => setShowFilter((prev) => !prev)}
                   className="text-gray-600 hover:text-black px-1"
@@ -210,7 +222,9 @@ export default function HedgingProposalGrid() {
           );
         },
         cell: (info) => (
-          <span className="font-semibold">{info.getValue() as string}</span>
+          <span className="font-semibold text-left">
+            {info.getValue() as string}
+          </span>
         ),
         filterFn: "includesString",
         enableSorting: false,
@@ -225,7 +239,7 @@ export default function HedgingProposalGrid() {
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
-              className="flex items-center justify-center gap-2 font-semibold group"
+              className="flex items-center justify-center gap-2 font-semibold group text-left"
             >
               <span>
                 {
@@ -285,6 +299,7 @@ export default function HedgingProposalGrid() {
       columnFilters,
       columnOrder,
       sorting,
+      pagination,
     },
     onColumnOrderChange: setColumnOrder,
     onColumnFiltersChange: setColumnFilters,
@@ -292,6 +307,8 @@ export default function HedgingProposalGrid() {
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
   });
 
   const grandTotal: CurrencyData = useMemo(() => {
@@ -330,6 +347,29 @@ export default function HedgingProposalGrid() {
   return (
     <Layout title="Hedging Proposal">
       <div className="mb-6 pt-4">
+        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Exposure Type
+            </label>
+            <select
+              value={
+                table.getState().columnFilters.find((f) => f.id === "bu")
+                  ?.value || ""
+              }
+              onChange={(e) =>
+                table.setColumnFilters([{ id: "bu", value: e.target.value }])
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              <option value="">All</option>
+              <option value="BU1">BU1</option>
+              <option value="BU2">BU2</option>
+            </select>
+          </div>
+
+          </div>
+
         <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
           <div className="p-4 border-b flex items-center justify-between">
             <h4 className="text-lg font-semibold text-gray-800">
@@ -392,14 +432,14 @@ export default function HedgingProposalGrid() {
                       {headerGroup.headers.map((header) => (
                         <th
                           key={header.id}
-                        //   className="p-3 text-center border border-gray-300 font-semibold"
+                          //   className="p-3 text-left border border-gray-300 font-semibold"
                           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                         >
                           <Droppable id={header.column.id}>
                             <Draggable id={header.column.id}>
-                              <div 
-                            //   className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
-                            className="cursor-move font-medium hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
+                              <div
+                                //   className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
+                                className="cursor-move font-medium hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
                               >
                                 {flexRender(
                                   header.column.columnDef.header,
@@ -415,9 +455,9 @@ export default function HedgingProposalGrid() {
                 </thead>
               </DndContext>
 
-              <tbody 
-            //   className="text-sm"
-              className="bg-white divide-y divide-gray-200"
+              <tbody
+                //   className="text-sm"
+                className="bg-white divide-y divide-gray-200"
               >
                 {table.getRowModel().rows.map((row) => (
                   <tr key={row.id} className="hover:bg-green-50 transition">
@@ -426,9 +466,10 @@ export default function HedgingProposalGrid() {
                         .getAllCells()
                         .find((c) => c.column.id === columnId);
                       return (
-                        <td key={columnId} 
-                        // className="border p-2 text-center"
-                        className="px-6 py-3 whitespace-nowrap text-sm"
+                        <td
+                          key={columnId}
+                          // className="border p-2 text-left"
+                          className="px-6 py-3 whitespace-nowrap text-sm"
                         >
                           {cell &&
                             flexRender(
@@ -458,6 +499,77 @@ export default function HedgingProposalGrid() {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">
+                Showing{" "}
+                {table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                  1}{" "}
+                to{" "}
+                {Math.min(
+                  (table.getState().pagination.pageIndex + 1) *
+                    table.getState().pagination.pageSize,
+                  table.getCoreRowModel().rows.length
+                )}{" "}
+                of {table.getCoreRowModel().rows.length} results
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <select
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => {
+                  table.setPageSize(Number(e.target.value));
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              >
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <option key={pageSize} value={pageSize}>
+                    Show {pageSize}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <span className="px-3 py-1 text-sm text-gray-700">
+                  Page {table.getState().pagination.pageIndex + 1} of{" "}
+                  {table.getPageCount()}
+                </span>
+
+                <button
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -61,12 +61,13 @@ const UserCreation = () => {
       onButtonClick={PageChange}
     >
       {showForm && (
-        <div className="p-6 rounded-xl border border-gray-300 bg-white shadow-md space-y-6">
+        <div className="flex justify-center">
+        <div className="p-6 rounded-xl border border-gray-300 bg-white shadow-md space-y-6 flex-shrink-0 w-full max-w-[1500px]">
           <h2 className="text-xl font-semibold">Create User Form</h2>
 
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="grid grid-cols-2 gap-x-6 gap-y-4"
+            className="grid grid-cols-2 gap-x-6 gap-y-4 flex-shrink-0"
           >
             <input
               type="hidden"
@@ -85,6 +86,8 @@ const UserCreation = () => {
                 className="w-full p-2 border rounded"
               />
             </div>
+            
+
 
             <div>
               <label>Employee Name</label>
@@ -193,6 +196,7 @@ const UserCreation = () => {
               </Button>
             </div>
           </form>
+        </div>
         </div>
       )}
 

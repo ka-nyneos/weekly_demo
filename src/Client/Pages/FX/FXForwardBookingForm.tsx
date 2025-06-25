@@ -17,7 +17,6 @@ const FXForwardBookingForm: React.FC = () => {
     <Layout title="FX Forward Booking Form">
       <div className="p-6 bg-gray-100 min-h-screen flex justify-center">
         <div className="w-full">
-
           {/* Displaying Record Summary */}
           {record && (
             <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6 mb-8 border border-gray-100">

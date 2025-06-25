@@ -6,22 +6,20 @@ import {
   getFilteredRowModel,
   flexRender,
   getSortedRowModel,
-
   getPaginationRowModel,
-
   type SortingState,
   type ColumnDef,
   type ColumnFiltersState,
 } from "@tanstack/react-table";
 
 import {
+
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
 import Button from "../../components/ui/Button";
-
 import Layout from "../../components/Layout/layout";
 import EditableWithHistory from "../../components/ExposureBucketComponents/EditableWithHistory";
 import ColumnPicker from "../../components/ExposureBucketComponents/ColumnPicker";
@@ -42,7 +40,6 @@ import {
 } from "@dnd-kit/sortable";
 
 import { CSS } from "@dnd-kit/utilities";
-
 
 // --- constants & types ---
 const exposureTypes = ["Purchase Order (PO)", "Letter of Credit (LC)"];
@@ -188,21 +185,17 @@ function SortableHeader({
   );
 }
 
-
-export default function ExposureBucketing() {
-
+export default function ExposureBucketings() {
   const [exposureType, setExposureType] = useState(exposureTypes[0]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [effectiveDate, setEffectiveDate] = useState("2025-05-22");
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
 
   const [sorting, setSorting] = useState<SortingState>([]);
-
   const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 10,
-    });
-
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   const defaultVisibility: Record<string, boolean> = {
     poNumber: true,
@@ -227,14 +220,10 @@ export default function ExposureBucketing() {
 
   const [poData, setPoData] = useState<POData[]>(defaultPOData);
   const [originalData, setOriginalData] = useState<POData[]>(defaultPOData);
-
   const [openCell, setOpenCell] = useState<{
     row: number;
     key: keyof POData;
   } | null>(null);
-
-  
-
 
   const [bgColor, setBgColor] = useState("bg-white-400");
 
@@ -308,7 +297,6 @@ export default function ExposureBucketing() {
     const base: ColumnDef<POData>[] = [
       {
         accessorKey: "poNumber",
-
         header: () => <span className="font-medium text-left">PO Number</span>,
       },
       {
@@ -334,18 +322,14 @@ export default function ExposureBucketing() {
       {
         accessorKey: "currency",
         header: () => <span className="font-medium">Currency</span>,
-
-      
       },
       {
         accessorKey: "amount",
         header: ({ column }) => (
           <button
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-
             className="text-left font-medium"
-
-
+          >
             PO Amount
             {{
               asc: "↑",
@@ -362,9 +346,7 @@ export default function ExposureBucketing() {
         header: ({ column }) => (
           <button
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-<
             className="text-left font-medium"
-
           >
             Advance Given / Received
             {{
@@ -391,11 +373,9 @@ export default function ExposureBucketing() {
 
       {
         accessorKey: "inco",
-
         header: () => (
           <span className="font-medium whitespace-nowrap">INCO Term</span>
         ),
-
         cell: ({ row }) => (
           <EditableWithHistory<POData>
             rowIdx={row.index}
@@ -419,9 +399,7 @@ export default function ExposureBucketing() {
       { key: "m6p", label: "> 6 Months" },
     ].map(({ key, label }) => ({
       accessorKey: key,
-
       header: () => <span className="font-medium">{label}</span>,
-
       cell: ({ row }) => (
         <EditableWithHistory<POData>
           rowIdx={row.index}
@@ -438,7 +416,6 @@ export default function ExposureBucketing() {
       accessorKey: "remainingPct",
       id: "remainingPct",
       header: () => <span className="font-medium">Remaining %</span>,
-
       cell: ({ row }) => {
         const { amount, advance, m1, m2, m3, m4to6, m6p } = row.original;
         const allocated = advance + m1 + m2 + m3 + m4to6 + m6p;
@@ -463,9 +440,7 @@ export default function ExposureBucketing() {
 
     const remarksCol: ColumnDef<POData> = {
       accessorKey: "remarks",
-
       header: () => <span className="font-medium">Remarks</span>,
-
       cell: ({ row }) => (
         <EditableWithHistory<POData>
           rowIdx={row.index}
@@ -480,9 +455,7 @@ export default function ExposureBucketing() {
     };
 
     return [...base, ...months, percentageCol, remarksCol];
-
   }, [handlePOInputChange, originalData, openCell]);
-
 
   // init column order
   useEffect(() => {
@@ -491,11 +464,16 @@ export default function ExposureBucketing() {
     }
   }, [poColumns, columnOrder]);
 
-
   const table = useReactTable({
     data: poData,
     columns: poColumns,
-    state: { pagination,columnFilters, columnOrder, columnVisibility, sorting },
+    state: {
+      pagination,
+      columnFilters,
+      columnOrder,
+      columnVisibility,
+      sorting,
+    },
     onColumnFiltersChange: setColumnFilters,
     onColumnOrderChange: setColumnOrder,
     onColumnVisibilityChange: setColumnVisibility,
@@ -505,7 +483,6 @@ export default function ExposureBucketing() {
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
     getSortedRowModel: getSortedRowModel(),
-
   });
 
   const setFilter = (id: string, value: string) =>
@@ -521,7 +498,6 @@ export default function ExposureBucketing() {
   );
 
   return (
-
     <Layout title="Exposure Bucketing Table">
       <div className="mb-6 pt-4">
         <div className="flex space-x-1 border-b border-gray-200">
@@ -530,10 +506,6 @@ export default function ExposureBucketing() {
           </h4>
         </div>
 
-        <div className="mt-[1rem] mb-[1rem]">
-          <label className="font-semibold">Columns Picker:</label>
-          <ColumnPicker table={table} />
-        </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
@@ -542,7 +514,6 @@ export default function ExposureBucketing() {
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-
               value={exposureType}
               onChange={(e) => setExposureType(e.target.value)}
             >
@@ -560,7 +531,6 @@ export default function ExposureBucketing() {
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-
               onChange={(e) => setFilter("bu", e.target.value)}
             >
               <option value="">All</option>
@@ -572,14 +542,12 @@ export default function ExposureBucketing() {
             </select>
           </div>
 
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Currency:
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-
               onChange={(e) => setFilter("currency", e.target.value)}
             >
               <option value="">All</option>
@@ -591,14 +559,12 @@ export default function ExposureBucketing() {
             </select>
           </div>
 
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Payable / Receivable:
             </label>
             <select
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-
               onChange={(e) => setFilter("type", e.target.value)}
             >
               <option value="">All</option>
@@ -609,7 +575,6 @@ export default function ExposureBucketing() {
               ))}
             </select>
           </div>
-
         </div>
 
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -620,12 +585,10 @@ export default function ExposureBucketing() {
             <input
               type="date"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-
               value={effectiveDate}
               onChange={(e) => setEffectiveDate(e.target.value)}
             />
           </div>
-
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -636,46 +599,51 @@ export default function ExposureBucketing() {
               onChange={(e) => setFilter("client", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder="Search..."
-
             />
           </div>
         </div>
 
-
         <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
           <div className="p-4 border-b flex items-center justify-between">
-            <h4 className="text-lg font-semibold text-gray-800">
-              Exposure Bucketing
-            </h4>
+            <div className="flex items-center justify-between gap-2">
+              <div className="mt-4">
+                <ColumnPicker table={table} />
+              </div>
+              <h4 className="text-lg font-semibold text-gray-800">
+                Exposure Bucketing
+              </h4>
+            </div>
 
             <div className="flex gap-2">
+              <Button
+                color="Green"
+                categories="Medium"
+                onClick={() => alert("Bucketing Saved")}
+              >
+                Save
+              </Button>
 
-            <Button color="Green" categories="Medium"
-            onClick={() => alert("Bucketing Saved")}
-            >
-              Save
-            </Button>
+              <Button color="Red" categories="Medium" onClick={handleReset}>
+                Reset
+              </Button>
 
-            <Button color="Red" categories="Medium"
-            onClick={handleReset}
-            >
-              Reset
-            </Button>
+              <Button
+                color="Blue"
+                categories="Medium"
+                onClick={() => window.print()}
+              >
+                print
+              </Button>
 
-            <Button color="Blue" categories="Medium"
-            onClick={() => window.print()}
-            >
-              print
-            </Button>
+              <Button color="Red" categories="Medium">
+                Cancel
+              </Button>
 
-            <Button color="Red" categories="Medium">
-              Cancel
-            </Button>
-
-            <Button color="Blue" categories="Medium">
-              Clear Data
-            </Button>
-          </div>
+              <Button color="Blue" categories="Medium">
+                Clear Data
+              </Button>
+              
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="table-fixed w-max min-w-full divide-y divide-gray-200">
@@ -815,7 +783,6 @@ export default function ExposureBucketing() {
           </div>
         </div>
       </div>
-
     </Layout>
   );
 }
