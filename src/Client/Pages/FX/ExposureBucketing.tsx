@@ -13,7 +13,6 @@ import {
 } from "@tanstack/react-table";
 
 import {
-
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -506,7 +505,6 @@ export default function ExposureBucketings() {
           </h4>
         </div>
 
-
         <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -604,7 +602,10 @@ export default function ExposureBucketings() {
         </div>
 
         <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
-          <div className="p-4 border-b flex items-center justify-between">
+          <div
+            // className="p-4 border-b flex items-center justify-between"
+            className="flex items-center justify-between gap-2"
+          >
             <div className="flex items-center justify-between gap-2">
               <div className="mt-4">
                 <ColumnPicker table={table} />
@@ -614,7 +615,7 @@ export default function ExposureBucketings() {
               </h4>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 pr-1">
               <Button
                 color="Green"
                 categories="Medium"
@@ -632,17 +633,12 @@ export default function ExposureBucketings() {
                 categories="Medium"
                 onClick={() => window.print()}
               >
-                print
-              </Button>
-
-              <Button color="Red" categories="Medium">
-                Cancel
+                Print
               </Button>
 
               <Button color="Blue" categories="Medium">
-                Clear Data
+                Export as Csv
               </Button>
-              
             </div>
           </div>
           <div className="overflow-x-auto">

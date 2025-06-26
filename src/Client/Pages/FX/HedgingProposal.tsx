@@ -179,55 +179,56 @@ export default function HedgingProposalGrid() {
       {
         accessorKey: "currency",
         id: "currency",
-        header: function CurrencyHeader({ column, table }) {
-          const [showFilter, setShowFilter] = useState(false);
+        // header: function CurrencyHeader({ column, table }) {
+        //   const [showFilter, setShowFilter] = useState(false);
 
-          const filterValue =
-            table.getState().columnFilters.find((f) => f.id === column.id)
-              ?.value || "";
+        //   const filterValue =
+        //     table.getState().columnFilters.find((f) => f.id === column.id)
+        //       ?.value || "";
 
-          return (
-            <div className="relative">
-              <div className="flex items-center  gap-1">
-                <span className="font-semibold text-left">Currency</span>
-                <button
-                  onClick={() => setShowFilter((prev) => !prev)}
-                  className="text-gray-600 hover:text-black px-1"
-                >
-                  ⋮
-                </button>
-              </div>
+        //   return (
+        //     <div className="relative">
+        //       <div className="flex items-center  gap-1">
+        //         <span className="font-semibold text-left">Currency</span>
+        //         <button
+        //           onClick={() => setShowFilter((prev) => !prev)}
+        //           className="text-gray-600 hover:text-black px-1"
+        //         >
+        //           ⋮
+        //         </button>
+        //       </div>
 
-              {showFilter && (
-                <div className="absolute z-10 right-0 mt-2 w-40 bg-white border border-gray-300 rounded shadow-md p-2">
-                  <input
-                    type="text"
-                    placeholder="Search currency"
-                    value={filterValue}
-                    onChange={(e) => column.setFilterValue(e.target.value)}
-                    className="w-full p-1 text-sm border rounded"
-                  />
-                  <button
-                    onClick={() => {
-                      column.setFilterValue("");
-                      setShowFilter(false);
-                    }}
-                    className="text-xs mt-1 text-blue-600 hover:underline"
-                  >
-                    Clear
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        },
+        //       {showFilter && (
+        //         <div className="absolute z-10 right-0 mt-2 w-40 bg-white border border-gray-300 rounded shadow-md p-2">
+        //           <input
+        //             type="text"
+        //             placeholder="Search currency"
+        //             value={filterValue}
+        //             onChange={(e) => column.setFilterValue(e.target.value)}
+        //             className="w-full p-1 text-sm border rounded"
+        //           />
+        //           <button
+        //             onClick={() => {
+        //               column.setFilterValue("");
+        //               setShowFilter(false);
+        //             }}
+        //             className="text-xs mt-1 text-blue-600 hover:underline"
+        //           >
+        //             Clear
+        //           </button>
+        //         </div>
+        //       )}
+        //     </div>
+        //   );
+        // },
+        header: "Currency",
         cell: (info) => (
           <span className="font-semibold text-left">
             {info.getValue() as string}
           </span>
         ),
-        filterFn: "includesString",
-        enableSorting: false,
+        // filterFn: "includesString",
+        // enableSorting: false,
       },
 
       ...["month1", "month2", "month3", "month4to6", "month6plus"].map(
@@ -343,232 +344,253 @@ export default function HedgingProposalGrid() {
     }));
     setData(resetData);
   };
+  const setFilter = (id: string, value: string) =>
+    setColumnFilters((prev) => [
+      ...prev.filter((f) => f.id !== id),
+      ...(value ? [{ id, value }] : []),
+    ]);
 
   return (
     <Layout title="Hedging Proposal">
       <div className="mb-6 pt-4">
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Exposure Type
-            </label>
-            <select
-              value={
-                table.getState().columnFilters.find((f) => f.id === "bu")
-                  ?.value || ""
-              }
-              onChange={(e) =>
-                table.setColumnFilters([{ id: "bu", value: e.target.value }])
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    {/* Business Unit Filter */}
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        BU (Business Unit)
+      </label>
+      <select
+        value={
+          table.getState().columnFilters.find((f) => f.id === "bu")
+            ?.value || ""
+        }
+        onChange={(e) =>
+          table.setColumnFilters([{ id: "bu", value: e.target.value }])
+        }
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+      >
+        <option value="">All</option>
+        <option value="BU1">BU1</option>
+        <option value="BU2">BU2</option>
+      </select>
+    </div>
+
+    {/* Currency Filter */}
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Filter by Currency:
+      </label>
+      <select
+        onChange={(e) => setFilter("currency", e.target.value)}
+        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+      >
+        <option value="">All Currencies</option>
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        {/* <option value="GBP">GBP</option> */}
+      </select>
+    </div>
+  </div>
+</div>
+
+      <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
+        <div className="p-4 border-b flex items-center justify-between">
+          <h4 className="text-lg font-semibold text-gray-800">
+            Hedging Proposal
+          </h4>
+
+          <div className="flex gap-2">
+            <Button
+              color="Green"
+              categories="Medium"
+              onClick={() => {
+                alert("Data Saved in the Database.");
+              }}
             >
-              <option value="">All</option>
-              <option value="BU1">BU1</option>
-              <option value="BU2">BU2</option>
-            </select>
-          </div>
+              Save Proposal
+            </Button>
 
-          </div>
-
-        <div className="mt-[1rem] bg-white rounded-lg shadow-sm border">
-          <div className="p-4 border-b flex items-center justify-between">
-            <h4 className="text-lg font-semibold text-gray-800">
-              Hedging Proposal
-            </h4>
-
-            <div className="flex gap-2">
-              <Button
-                color="Green"
-                categories="Medium"
-                onClick={() => {
-                  alert("Data Saved in the Database.");
-                }}
-              >
-                Save Proposal
-              </Button>
-
-              <Button
-                color="Red"
-                categories="Medium"
-                onClick={resetAmountsToZero}
-              >
-                Reset Amount
-              </Button>
-
-              <Button
-                color="Blue"
-                categories="Medium"
-                onClick={() => window.print()}
-              >
-                Print Summary
-              </Button>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table
-              // className="w-full border border-black border-collapse rounded-lg overflow-hidden shadow-sm"
-              className="table-fixed w-max min-w-full divide-y divide-gray-200"
+            <Button
+              color="Red"
+              categories="Medium"
+              onClick={resetAmountsToZero}
             >
-              <DndContext
-                onDragEnd={(event: DragEndEvent) => {
-                  const { active, over } = event;
-                  if (active.id !== over?.id) {
-                    const oldIndex = columnOrder.indexOf(active.id as string);
-                    const newIndex = columnOrder.indexOf(over?.id as string);
-                    const newOrder = [...columnOrder];
-                    newOrder.splice(oldIndex, 1);
-                    newOrder.splice(newIndex, 0, active.id as string);
-                    setColumnOrder(newOrder);
-                  }
-                }}
-              >
-                <thead
-                  // className="bg-gradient-to-b from-green-200   to-blue-100 text-md text-black hover:bg-blue-300"
-                  className="text-left font-medium bg-gradient-to-b from-green-200 to-blue-100"
-                >
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th
-                          key={header.id}
-                          //   className="p-3 text-left border border-gray-300 font-semibold"
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          <Droppable id={header.column.id}>
-                            <Draggable id={header.column.id}>
-                              <div
-                                //   className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
-                                className="cursor-move font-medium hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
-                              >
-                                {flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                              </div>
-                            </Draggable>
-                          </Droppable>
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
-                </thead>
-              </DndContext>
+              Reset Amount
+            </Button>
 
-              <tbody
-                //   className="text-sm"
-                className="bg-white divide-y divide-gray-200"
+            <Button
+              color="Blue"
+              categories="Medium"
+              onClick={() => window.print()}
+            >
+              Print Summary
+            </Button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table
+            // className="w-full border border-black border-collapse rounded-lg overflow-hidden shadow-sm"
+            className="table-fixed w-max min-w-full divide-y divide-gray-200"
+          >
+            <DndContext
+              onDragEnd={(event: DragEndEvent) => {
+                const { active, over } = event;
+                if (active.id !== over?.id) {
+                  const oldIndex = columnOrder.indexOf(active.id as string);
+                  const newIndex = columnOrder.indexOf(over?.id as string);
+                  const newOrder = [...columnOrder];
+                  newOrder.splice(oldIndex, 1);
+                  newOrder.splice(newIndex, 0, active.id as string);
+                  setColumnOrder(newOrder);
+                }
+              }}
+            >
+              <thead
+                // className="bg-gradient-to-b from-green-200   to-blue-100 text-md text-black hover:bg-blue-300"
+                className="text-left font-medium bg-gradient-to-b from-green-200 to-blue-100"
               >
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-green-50 transition">
-                    {columnOrder.map((columnId) => {
-                      const cell = row
-                        .getAllCells()
-                        .find((c) => c.column.id === columnId);
-                      return (
-                        <td
-                          key={columnId}
-                          // className="border p-2 text-left"
-                          className="px-6 py-3 whitespace-nowrap text-sm"
-                        >
-                          {cell &&
-                            flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                        </td>
-                      );
-                    })}
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th
+                        key={header.id}
+                        //   className="p-3 text-left border border-gray-300 font-semibold"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <Droppable id={header.column.id}>
+                          <Draggable id={header.column.id}>
+                            <div
+                              //   className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
+                              className="cursor-move font-medium hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out"
+                            >
+                              {flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                            </div>
+                          </Draggable>
+                        </Droppable>
+                      </th>
+                    ))}
                   </tr>
                 ))}
+              </thead>
+            </DndContext>
 
-                <tr className="font-bold bg-gray-100 border-t-2 border-gray-400">
-                  {columnOrder.map((col) => (
-                    <td key={col} className="border p-2 text-right">
-                      {col === "bu"
-                        ? grandTotal.bu
-                        : col === "currency"
-                        ? grandTotal.currency
-                        : (
-                            grandTotal[
-                              col as keyof Omit<CurrencyData, "bu" | "currency">
-                            ] ?? 0
-                          ).toFixed(2)}
-                    </td>
-                  ))}
+            <tbody
+              //   className="text-sm"
+              className="bg-white divide-y divide-gray-200"
+            >
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id} className="hover:bg-green-50 transition">
+                  {columnOrder.map((columnId) => {
+                    const cell = row
+                      .getAllCells()
+                      .find((c) => c.column.id === columnId);
+                    return (
+                      <td
+                        key={columnId}
+                        // className="border p-2 text-left"
+                        className="px-6 py-3 whitespace-nowrap text-sm"
+                      >
+                        {cell &&
+                          flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                      </td>
+                    );
+                  })}
                 </tr>
-              </tbody>
-            </table>
+              ))}
+
+              <tr className="font-bold bg-gray-100 border-t-2 border-gray-400">
+                {columnOrder.map((col) => (
+                  <td key={col} className="border p-2 text-right">
+                    {col === "bu"
+                      ? grandTotal.bu
+                      : col === "currency"
+                      ? grandTotal.currency
+                      : (
+                          grandTotal[
+                            col as keyof Omit<CurrencyData, "bu" | "currency">
+                          ] ?? 0
+                        ).toFixed(2)}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-700">
+              Showing{" "}
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}{" "}
+              to{" "}
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) *
+                  table.getState().pagination.pageSize,
+                table.getCoreRowModel().rows.length
+              )}{" "}
+              of {table.getCoreRowModel().rows.length} results
+            </span>
           </div>
 
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-700">
-                Showing{" "}
-                {table.getState().pagination.pageIndex *
-                  table.getState().pagination.pageSize +
-                  1}{" "}
-                to{" "}
-                {Math.min(
-                  (table.getState().pagination.pageIndex + 1) *
-                    table.getState().pagination.pageSize,
-                  table.getCoreRowModel().rows.length
-                )}{" "}
-                of {table.getCoreRowModel().rows.length} results
-              </span>
-            </div>
+          <div className="flex items-center space-x-2">
+            <select
+              value={table.getState().pagination.pageSize}
+              onChange={(e) => {
+                table.setPageSize(Number(e.target.value));
+              }}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              {[10, 20, 30, 40, 50].map((pageSize) => (
+                <option key={pageSize} value={pageSize}>
+                  Show {pageSize}
+                </option>
+              ))}
+            </select>
 
-            <div className="flex items-center space-x-2">
-              <select
-                value={table.getState().pagination.pageSize}
-                onChange={(e) => {
-                  table.setPageSize(Number(e.target.value));
-                }}
-                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            <div className="flex items-center space-x-1">
+              <button
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {[10, 20, 30, 40, 50].map((pageSize) => (
-                  <option key={pageSize} value={pageSize}>
-                    Show {pageSize}
-                  </option>
-                ))}
-              </select>
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
 
-              <div className="flex items-center space-x-1">
-                <button
-                  onClick={() => table.setPageIndex(0)}
-                  disabled={!table.getCanPreviousPage()}
-                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronsLeft className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
+              <span className="px-3 py-1 text-sm text-gray-700">
+                Page {table.getState().pagination.pageIndex + 1} of{" "}
+                {table.getPageCount()}
+              </span>
 
-                <span className="px-3 py-1 text-sm text-gray-700">
-                  Page {table.getState().pagination.pageIndex + 1} of{" "}
-                  {table.getPageCount()}
-                </span>
-
-                <button
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                  disabled={!table.getCanNextPage()}
-                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronsRight className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>

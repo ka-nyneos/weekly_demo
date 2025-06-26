@@ -266,15 +266,15 @@ const HedgingDashboard: React.FC = () => {
               </button>
 
               {expandedMaturity[maturity] && (
-                <div className="overflow-auto">
-                  <table className="min-w-full text-sm text-center border-t">
-                    <thead className="bg-green-50">
+                <div className="overflow-auto border-black">
+                  <table className="min-w-full text-sm text-center border border-black">
+                      <thead className="text-center font-medium bg-gradient-to-b border border-black from-green-200 to-blue-100">
                       {table.getHeaderGroups().map((headerGroup) => (
                         <tr key={headerGroup.id}>
                           {headerGroup.headers.map((header) => (
                             <th
                               key={header.id}
-                              className="px-3 py-2 border"
+                              className="px-3 py-2 border border-gray-400"
                               colSpan={header.colSpan}
                             >
                               {flexRender(
@@ -290,7 +290,7 @@ const HedgingDashboard: React.FC = () => {
                       {table.getRowModel().rows.map((row) => (
                         <tr key={row.id}>
                           {row.getVisibleCells().map((cell) => (
-                            <td key={cell.id} className="px-3 py-2 border">
+                            <td key={cell.id} className="px-3 py-2 border border-gray-400">
                               {flexRender(
                                 cell.column.columnDef.cell,
                                 cell.getContext()
@@ -300,28 +300,28 @@ const HedgingDashboard: React.FC = () => {
                         </tr>
                       ))}
                       <tr className="bg-yellow-50 shadow-md font-semibold">
-                        <td className="px-3 py-2 border text-centre">
+                        <td className="px-3 py-2 border border-gray-400 text-centre">
                           Total for {maturity}
                         </td>
-                        <td className="px-3 py-2 border">
+                        <td className="px-3 py-2 border border-gray-400">
                           {format(totals.payable)}
                         </td>
-                        <td className="px-3 py-2 border">
+                        <td className="px-3 py-2 border border-gray-400">
                           {format(totals.receivable)}
                         </td>
-                        <td className="px-3 py-2 border">
+                        <td className="px-3 py-2 border border-gray-400">
                           {format(totalNetExp)}
                         </td>
-                        <td className="px-3 py-2 border">
+                        <td className="px-3 py-2 border border-gray-400">
                           {format(totals.forwardBuy)}
                         </td>
-                        <td className="px-3 py-2 border">
+                        <td className="px-3 py-2 border border-gray-400">
                           {format(totals.forwardSell)}
                         </td>
-                        <td className="px-3 py-2 border">
+                        <td className="px-3 py-2 border border-gray-400">
                           {format(totals.forwardBuy - totals.forwardSell)}
                         </td>
-                        <td className={`px-3 py-2 border ${diffColor}`}>
+                        <td className={`px-3 py-2 border border-gray-400 ${diffColor}`}>
                           {format(totalDiff)}
                         </td>
                       </tr>
@@ -337,18 +337,18 @@ const HedgingDashboard: React.FC = () => {
           <table className="min-w-full text-sm text-center border-t">
             <thead className="bg-grey-50">
               <tr>
-                <th className="px-1 py-2 border text-centre">
+                <th className="px-1 py-2 border border-gray-400 text-centre">
                   Grand Total (All Months)
                 </th>
-                <td className="px-3 py-2 border">{format(grand.payable)}</td>
-                <td className="px-3 py-2 border">{format(grand.receivable)}</td>
-                <td className="px-3 py-2 border">{format(grandNetExp)}</td>
-                <td className="px-3 py-2 border">{format(grand.forwardBuy)}</td>
-                <td className="px-3 py-2 border">
+                <td className="px-3 py-2 border border-gray-400">{format(grand.payable)}</td>
+                <td className="px-3 py-2 border border-gray-400">{format(grand.receivable)}</td>
+                <td className="px-3 py-2 border border-gray-400">{format(grandNetExp)}</td>
+                <td className="px-3 py-2 border border-gray-400">{format(grand.forwardBuy)}</td>
+                <td className="px-3 py-2 border border-gray-400">
                   {format(grand.forwardSell)}
                 </td>
-                <td className="px-3 py-2 border">{format(grandNetFwd)}</td>
-                <td className={`px-3 py-2 border ${grandColor}`}>
+                <td className="px-3 py-2 border border-gray-400">{format(grandNetFwd)}</td>
+                <td className={`px-3 py-2 border border-gray-400 ${grandColor}`}>
                   {format(grandDiff)}
                 </td>
               </tr>
@@ -362,7 +362,7 @@ const HedgingDashboard: React.FC = () => {
               Exposure: Payable vs. Receivable by Maturity
             </h3>
             <table className="min-w-full text-sm text-center border">
-              <thead className="bg-green-100">
+                <thead className="text-left font-medium bg-gradient-to-b from-green-200 to-blue-100">
                 <tr>
                   <th className="border px-2 py-1">Type</th>
                   {Object.keys(groupedData).map((maturity) => (
@@ -429,8 +429,8 @@ const HedgingDashboard: React.FC = () => {
             <h3 className="text-lg font-semibold text-green-800 text-center mb-2">
               Forwards: Buy vs. Sell by Maturity
             </h3>
-            <table className="min-w-full text-sm text-center border">
-              <thead className="bg-green-100">
+            <table className="min-w-full text-sm text-center border-black">
+                 <thead className="text-left font-medium bg-gradient-to-b border-black from-green-200 to-blue-100">
                 <tr>
                   <th className="border px-2 py-1">Type</th>
                   {Object.keys(groupedData).map((maturity) => (

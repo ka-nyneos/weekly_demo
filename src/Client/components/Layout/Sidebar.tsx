@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Menu,
@@ -13,6 +13,14 @@ import {
   FilePlus,
   CheckCircle,
   LogOut,
+  Wrench,
+  Settings,
+  Bolt,
+  UserPlus,
+  HandCoins,
+  ChevronDown,
+  UserRoundCog,
+  ChevronRight,
 } from "lucide-react";
 
 type SidebarProps = {
@@ -20,67 +28,171 @@ type SidebarProps = {
   toggleCollapse: () => void;
 };
 
+type NavItem = {
+  label: string;
+  path?: string;
+  icon: React.ReactNode;
+  subItems?: NavItem[];
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleCollapse }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [openSubMenus, setOpenSubMenus] = useState<Set<string>>(new Set());
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { label: "Entity", path: "/entity", icon: <Building /> },
     { label: "Entity hierarchy", path: "/hierarchical", icon: <Layers /> },
+    {
+      label: "Configuration",
+      icon: <Wrench />,
+      subItems: [
+        { label: "Masters", path: "/masters", icon: <Bolt /> },
+      ],
+    },
+    {
+      label: "Settings", 
+      // path: "/settings", 
+      icon: <Settings />, 
+      subItems: [
+        { label: "Roles", path: "/roles", icon: <UserRoundCog /> },
+        { label: "Permissions", path: "/permissions", icon: <HandCoins /> },
+        { label: "Users", path: "/user-creation", icon: <UserPlus />},
+      ],
+    },
     { label: "Exposure Upload", path: "/exposure-upload", icon: <Upload /> },
-    {
-      label: "Exposure Bucketing",
-      path: "/exposure-bucketing",
-      icon: <BarChart2 />,
-    },
-    {
-      label: "Hedging Proposal",
-      path: "/hedging-proposal",
-      icon: <FileText />,
-    },
+    { label: "Exposure Bucketing", path: "/exposure-bucketing", icon: <BarChart2 /> },
+    { label: "Hedging Proposal", path: "/hedging-proposal", icon: <FileText /> },
+    { label: "Hedging Dashboard", path: "/hedging-dashboard", icon: <FilePlus /> },
     { label: "FX Booking", path: "/fxbooking", icon: <FilePlus /> },
-    { label: "FX Status", path: "/fx-status", icon: <CheckCircle /> },
+    { label: "FX Status", path: "/fxstatus", icon: <CheckCircle /> },
     { label: "Logout", path: "/", icon: <LogOut /> },
   ];
+
+  // Keep submenus open that contain the current active path
+  useEffect(() => {
+    const newOpenSubMenus = new Set<string>();
+    
+    navItems.forEach(item => {
+      if (item.subItems) {
+        const hasActiveChild = item.subItems.some(
+          subItem => subItem.path === location.pathname
+        );
+        if (hasActiveChild) {
+          newOpenSubMenus.add(item.label);
+        }
+      }
+    });
+
+    setOpenSubMenus(newOpenSubMenus);
+  }, [location.pathname]);
+
+  const toggleSubMenu = (label: string) => {
+    setOpenSubMenus(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(label)) {
+        newSet.delete(label);
+      } else {
+        newSet.add(label);
+      }
+      return newSet;
+    });
+  };
+
+  const handleItemClick = (item: NavItem) => {
+    if (item.subItems) {
+      toggleSubMenu(item.label);
+      if (!item.path) return;
+    }
+    if (item.path) {
+      navigate(item.path);
+    }
+  };
+
+  const isItemOrSubItemActive = (item: NavItem): boolean => {
+    if (item.path && location.pathname === item.path) return true;
+    if (item.subItems) {
+      return item.subItems.some(subItem => 
+        subItem.path && location.pathname === subItem.path
+      );
+    }
+    return false;
+  };
 
   return (
     <div
       className={`fixed top-0 left-0 h-screen z-50 ${
-        collapsed ? "w-[4rem]" : "w-[16rem]"
-      } bg-gray-700 text-white p-[1rem] shadow-lg flex flex-col transition-all duration-500 overflow-x-visible`}
+        collapsed ? "w-[4.5rem]" : "w-[17rem]"
+      } bg-gray-700 text-white p-4 shadow-lg flex flex-col transition-all duration-500 overflow-x-visible`}
     >
       <button
         onClick={toggleCollapse}
-        className="cursor-pointer text-white mb-[1.5rem] self-end focus:outline-none hover:bg-green-300 rounded px-1 py-1"
+        className="cursor-pointer text-white mb-6 self-end focus:outline-none hover:bg-green-300 rounded p-1"
       >
         {collapsed ? <Menu size={24} /> : <X size={24} />}
       </button>
 
-      <nav className="flex flex-col space-y-4 w-full">
-        {navItems.map(({ label, path, icon }) => {
-          const isActive = location.pathname === path;
+      <nav className="flex flex-col space-y-2 w-full">
+        {navItems.map((item) => {
+          const hasSubItems = item.subItems && item.subItems.length > 0;
+          const isSubMenuOpen = openSubMenus.has(item.label);
+          const isActive = isItemOrSubItemActive(item);
+
           return (
-            <div key={label} className="relative group w-full">
+            <div key={item.label} className="relative group w-full">
               <button
-                onClick={() => navigate(path)}
-                className={`flex items-center rounded px-1 py-1 transition-colors w-full ${
-                  isActive ? "bg-green-400 font-semibold" : "hover:bg-green-300"
+                onClick={() => handleItemClick(item)}
+                className={`flex items-center rounded px-3 py-2.5 transition-colors w-full text-medium ${
+                  isActive
+                    ? "bg-green-500 font-medium" 
+                    : "hover:bg-green-400 font-medium"
                 }`}
               >
-                <span className="w-6 flex justify-center">{icon}</span>
+                <span className="w-6 flex justify-center">{item.icon}</span>
                 {!collapsed && (
-                  <span className="ml-2 whitespace-nowrap text-left text-sm">
-                    {label}
-                  </span>
+                  <>
+                    <span className="ml-3 whitespace-nowrap text-left text- flex-1">
+                      {item.label}
+                    </span>
+                    {hasSubItems && (
+                      <span className="w-4">
+                        {isSubMenuOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      </span>
+                    )}
+                  </>
                 )}
               </button>
 
-              {/* Tooltip outside when collapsed */}
               {collapsed && (
                 <div className="absolute left-[105%] top-1/2 -translate-y-1/2 z-50 px-2 py-1">
-                  <div className="whitespace-nowrap rounded bg-green-300 px-2 py-1 text-sm text-black opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg">
-                    {label}
+                  <div className="whitespace-nowrap rounded bg-green-400 px-3 py-1.5 text-sm font-medium text-black opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg">
+                    {item.label}
                   </div>
+                </div>
+              )}
+
+              {!collapsed && hasSubItems && isSubMenuOpen && (
+                <div className="ml-8 mt-1.5 space-y-1.5">
+                  {item.subItems?.map((subItem) => (
+                    <button
+                      key={subItem.label}
+                      onClick={() => {
+                        if (subItem.path) {
+                          navigate(subItem.path);
+                        }
+                      }}
+                      className={`flex items-center rounded px-3 py-2 transition-colors w-full ${
+                        location.pathname === subItem.path
+                          ? "bg-green-600 font-medium" 
+                          : "hover:bg-green-500 font-medium"
+                      }`}
+                    >
+                      <span className="w-6 flex justify-center">{subItem.icon}</span>
+                      <span className="ml-3 whitespace-nowrap text-left text-sm">
+                        {subItem.label}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
@@ -92,77 +204,3 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleCollapse }) => {
 };
 
 export default Sidebar;
-
-// import React from "react";
-// import { useNavigate, useLocation } from "react-router-dom";
-// import {
-//   Menu,
-//   X,
-//   BarChart2,
-//   FileText,
-//   Building,
-//   Layers,
-//   Upload,
-//   FilePlus,
-//   CheckCircle,
-//   LogOut,
-// } from "lucide-react";
-
-// interface SidebarProps {
-//   collapsed: boolean;
-//   setCollapsed: (collapsed: boolean) => void;
-// }
-
-// const Sidebar: React.FC<SidebarProps> = ({ collapsed, setCollapsed }) => {
-//   const navigate = useNavigate();
-//   const location = useLocation();
-
-//   const navItems = [
-//     { label: "Entity", path: "/entity", icon: <Building /> },
-//     { label: "Entity hierarchy", path: "/hierarchical", icon: <Layers /> },
-//     { label: "Exposure Upload", path: "/exposure-upload", icon: <Upload /> },
-//     { label: "Exposure Bucketing", path: "/exposure-bucketing", icon: <BarChart2 /> },
-//     { label: "Hedging Proposal", path: "/hedging-proposal", icon: <FileText /> },
-//     { label: "FX Booking", path: "/fxbooking", icon: <FilePlus /> },
-//     { label: "FX Status", path: "/fx-status", icon: <CheckCircle /> },
-//     { label: "Logout", path: "/", icon: <LogOut /> },
-//   ];
-
-//   return (
-//     <div
-//       className={[
-//         "h-screen z-50 bg-green-200 text-green-900 shadow-md transition-all duration-300 ease-in-out flex flex-col items-center fixed top-0 left-0 rounded-lg m-2",
-//         collapsed ? "w-16" : "w-60",
-//       ].join(" ")}
-//     >
-//       <button
-//         onClick={() => setCollapsed(!collapsed)}
-//         className="self-end m-4 p-1 hover:bg-green-300 rounded"
-//       >
-//         {collapsed ? <Menu size={24} /> : <X size={24} />}
-//       </button>
-
-// {!collapsed && <h2 className="text-2xl font-bold mb-6">CashInvoice</h2>}
-
-// <nav className="flex flex-col space-y-2 w-full px-2">
-//   {navItems.map(({ label, path, icon }) => {
-//     const isActive = location.pathname === path;
-//     return (
-//       <button
-//         key={label}
-//         onClick={() => navigate(path)}
-//         className={`flex items-center space-x-2 px-3 py-2 rounded w-full transition-colors ${
-//           isActive ? "bg-green-400 font-semibold" : "hover:bg-green-300"
-//         }`}
-//       >
-//         {icon}
-//         {!collapsed && <span>{label}</span>}
-//       </button>
-//     );
-//   })}
-// </nav>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;

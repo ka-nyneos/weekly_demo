@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import Button from "../ui/Button";
 import { DndContext, type DragEndEvent } from "@dnd-kit/core";
-import ColumnPicker from "../ExposureBucketComponents/ColumnPicker";
+// import ColumnPicker from "../ExposureBucketComponents/ColumnPicker";
+import ColumnPicker from "./ColumnPicker";
+import { getSortedRowModel, type SortingState } from "@tanstack/react-table";
+
 // import {
 //   SortableContext,
 //   verticalListSortingStrategy,
@@ -143,6 +146,7 @@ const AllExposureRequest: React.FC = () => {
             className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
           />
         ),
+
         cell: ({ row }) => (
           <input
             type="checkbox"
@@ -185,7 +189,21 @@ const AllExposureRequest: React.FC = () => {
       },
       {
         accessorKey: "amount",
-        header: "Amount",
+        header: ({ column }) => (
+          <button
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="text-left font-medium"
+          >
+            Amount
+            {{
+              asc: "↑",
+              desc: "↓",
+            }[column.getIsSorted() as string] ?? "↕"}
+          </button>
+        ),
+        enableSorting: true,
+        sortingFn: (a, b, id) =>
+          (a.getValue(id) as number) - (b.getValue(id) as number),
         cell: ({ getValue }) => (
           <span className="font-medium text-gray-900">
             {new Intl.NumberFormat("en-US", {
@@ -272,6 +290,24 @@ const AllExposureRequest: React.FC = () => {
     []
   );
 
+  const defaultVisibility: Record<string, boolean> = {
+    select: true,
+    refNo: true,
+    type: true,
+    bu: true,
+    vendorBeneficiary: true,
+    amount: true,
+    currency: false,
+    maturityExpiry: true,
+    linkedId: false,
+    detail: false,
+    status: true,
+    UploadBy: false,
+    UploadDate: false,
+  };
+  const [columnVisibility, setColumnVisibility] = useState(defaultVisibility);
+  const [sorting, setSorting] = useState<SortingState>([]);
+
   const filteredData = useMemo(() => {
     return data.filter((row) => {
       return (
@@ -292,10 +328,15 @@ const AllExposureRequest: React.FC = () => {
     onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
     onPaginationChange: setPagination,
     state: {
       pagination,
       columnOrder,
+      columnVisibility,
+      sorting,
     },
   });
 
@@ -399,184 +440,220 @@ const AllExposureRequest: React.FC = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border">
-        {/* <div className="p-4 border-b flex items-center justify-between">
-          <h4 className="text-lg font-semibold text-gray-800">
-            Exposure Requests
-          </h4>
-        </div> */}
-
-        <div className="flex items-center justify-start gap-2">
-          <div className="mt-4">
-            <ColumnPicker table={table} />
+        <div
+          // className="p-4 border-b flex items-center justify-between"
+          className="flex items-center justify-start gap-2"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="mt-4">
+              <ColumnPicker
+                table={table}
+                defaultVisibleColumnIds={[
+                  "select",
+                  "refNo",
+                  "type",
+                  "bu",
+                  "vendorBeneficiary",
+                  "amount",
+                  "maturityExpiry",
+                  "status",
+                ]}
+                excludeColumnIds={["select", "actions"]}
+              />
+            </div>
+            <h4 className="text-lg font-semibold text-gray-800">
+              Exposure Requests
+            </h4>
           </div>
-          <h4 className="text-lg font-semibold text-gray-800">
-            Exposure Requests
-          </h4>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <DndContext
-              onDragEnd={(event: DragEndEvent) => {
-                const { active, over } = event;
-                if (active.id !== over?.id) {
-                  const oldIndex = columnOrder.indexOf(active.id as string);
-                  const newIndex = columnOrder.indexOf(over?.id as string);
-                  const newOrder = [...columnOrder];
-                  newOrder.splice(oldIndex, 1);
-                  newOrder.splice(newIndex, 0, active.id as string);
-                  setColumnOrder(newOrder);
-                }
-              }}
-            >
-              <thead className="bg-gradient-to-b from-green-200 to-blue-100">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th
-                        key={header.id}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        style={{ width: header.getSize() }}
-                      >
-                        <Droppable id={header.column.id}>
-                          <Draggable id={header.column.id}>
-                            <div className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out">
-                              {flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
+        <div
+          className="w-full  overflow-x-auto"
+        >
+          <div className="min-w-full overflow-visible">
+            <table className="min-w-full divide-y divide-gray-200">
+              <DndContext
+                onDragEnd={(event: DragEndEvent) => {
+                  const { active, over } = event;
+                  if (active.id !== over?.id) {
+                    const oldIndex = columnOrder.indexOf(active.id as string);
+                    const newIndex = columnOrder.indexOf(over?.id as string);
+                    const newOrder = [...columnOrder];
+                    newOrder.splice(oldIndex, 1);
+                    newOrder.splice(newIndex, 0, active.id as string);
+                    setColumnOrder(newOrder);
+                  }
+                }}
+              >
+                <colgroup>
+                  {table.getVisibleLeafColumns().map((col) => (
+                    <col key={col.id} className="font-medium min-w-[150px]" />
+                  ))}
+                </colgroup>
+                <thead className="bg-gradient-to-b from-green-200 to-blue-100">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header, index) => {
+                        const isFirst = index === 0;
+                        const isLast = index === headerGroup.headers.length - 1;
+
+                        return (
+                          <th
+                            key={header.id}
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                            style={{ width: header.getSize() }}
+                          >
+                            <Droppable id={header.column.id}>
+                              {isFirst || isLast ? (
+                                <div className="px-1">
+                                  {/* Not draggable */}
+                                  {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                                </div>
+                              ) : (
+                                <Draggable id={header.column.id}>
+                                  <div className="cursor-move hover:bg-green-200 rounded px-1 transition duration-150 ease-in-out">
+                                    {flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext()
+                                    )}
+                                  </div>
+                                </Draggable>
                               )}
-                            </div>
-                          </Draggable>
-                        </Droppable>
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-            </DndContext>
+                            </Droppable>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </thead>
+              </DndContext>
 
-            <tbody className="bg-white divide-y divide-gray-200">
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="px-6 py-12 text-center text-gray-500"
-                  >
-                    <div className="flex flex-col items-center">
-                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                        <svg
-                          className="w-6 h-6 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {table.getRowModel().rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                          <svg
+                            className="w-6 h-6 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-lg font-medium text-gray-900 mb-1">
+                          No exposure requests found
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          There are no pending exposure requests at the moment.
+                        </p>
                       </div>
-                      <p className="text-lg font-medium text-gray-900 mb-1">
-                        No exposure requests found
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        There are no pending exposure requests at the moment.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="hover:bg-gray-50">
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="px-6 py-4 whitespace-nowrap text-sm"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
+                    </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">
-              Showing{" "}
-              {table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize +
-                1}{" "}
-              to{" "}
-              {Math.min(
-                (table.getState().pagination.pageIndex + 1) *
-                  table.getState().pagination.pageSize,
-                table.getCoreRowModel().rows.length
-              )}{" "}
-              of {table.getCoreRowModel().rows.length} results
-            </span>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <tr key={row.id} className="hover:bg-gray-50">
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-6 py-4 whitespace-nowrap text-sm"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <select
-              value={table.getState().pagination.pageSize}
-              onChange={(e) => {
-                table.setPageSize(Number(e.target.value));
-              }}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <option key={pageSize} value={pageSize}>
-                  Show {pageSize}
-                </option>
-              ))}
-            </select>
-
-            <div className="flex items-center space-x-1">
-              <button
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronsLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              <span className="px-3 py-1 text-sm text-gray-700">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+          {/* Pagination */}
+          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-700">
+                Showing{" "}
+                {table.getState().pagination.pageIndex *
+                  table.getState().pagination.pageSize +
+                  1}{" "}
+                to{" "}
+                {Math.min(
+                  (table.getState().pagination.pageIndex + 1) *
+                    table.getState().pagination.pageSize,
+                  table.getCoreRowModel().rows.length
+                )}{" "}
+                of {table.getCoreRowModel().rows.length} results
               </span>
+            </div>
 
-              <button
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            <div className="flex items-center space-x-2">
+              <select
+                value={table.getState().pagination.pageSize}
+                onChange={(e) => {
+                  table.setPageSize(Number(e.target.value));
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-                className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <ChevronsRight className="w-4 h-4" />
-              </button>
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <option key={pageSize} value={pageSize}>
+                    Show {pageSize}
+                  </option>
+                ))}
+              </select>
+
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={() => table.setPageIndex(0)}
+                  disabled={!table.getCanPreviousPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsLeft className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <span className="px-3 py-1 text-sm text-gray-700">
+                  Page {table.getState().pagination.pageIndex + 1} of{" "}
+                  {table.getPageCount()}
+                </span>
+
+                <button
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                  disabled={!table.getCanNextPage()}
+                  className="p-1 rounded-md hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronsRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -585,11 +662,32 @@ const AllExposureRequest: React.FC = () => {
   );
 };
 
+
 const ActionDropdown: React.FC<{ row: ExposureRequest }> = ({ row }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
   return (
-    <div className="relative">
+    <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="p-1 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -598,52 +696,46 @@ const ActionDropdown: React.FC<{ row: ExposureRequest }> = ({ row }) => {
       </button>
 
       {isOpen && (
-        <>
-          <div
-            className="relative inset-0 z-50"
-            onClick={() => setIsOpen(false)}
-          />
-          <div className="absolute right-0 z-50 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200">
-            <div className="py-1">
-              <button
-                onClick={() => {
-                  console.log("View details for:", row.refNo);
-                  setIsOpen(false);
-                }}
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                View Details
-              </button>
-              <button
-                onClick={() => {
-                  console.log("Approve:", row.refNo);
-                  setIsOpen(false);
-                }}
-                className="block w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-100"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  console.log("Reject:", row.refNo);
-                  setIsOpen(false);
-                }}
-                className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
-              >
-                Delete
-              </button>
-              <button
-                onClick={() => {
-                  console.log("Edit:", row.refNo);
-                  setIsOpen(false);
-                }}
-                className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                Cancel
-              </button>
-            </div>
+        <div className="absolute right-0 top-8 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-[9999]">
+          <div className="py-1">
+            <button
+              onClick={() => {
+                console.log("View details for:", row.refNo);
+                setIsOpen(false);
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+            >
+              View Details
+            </button>
+            <button
+              onClick={() => {
+                console.log("Edit:", row.refNo);
+                setIsOpen(false);
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-gray-100"
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                console.log("Delete:", row.refNo);
+                setIsOpen(false);
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => {
+                console.log("Cancel:", row.refNo);
+                setIsOpen(false);
+              }}
+              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+            >
+              Cancel
+            </button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

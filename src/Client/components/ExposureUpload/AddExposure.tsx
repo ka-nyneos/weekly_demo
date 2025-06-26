@@ -274,7 +274,7 @@ const AddExposure: React.FC = () => {
   const removeFile = (id: string) => setFiles((prev) => prev.filter((file) => file.id !== id));
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <h4 className="pb-2 border-b flex items-center justify-between text-lg font-semibold text-gray-800">
         Exposure Uploader
       </h4>
@@ -430,8 +430,22 @@ const AddExposure: React.FC = () => {
                         <Eye className="w-4 h-4" />
                       </button>
                     )}
+
+                    {file.status === 'error' && file.file && (
+                      <button
+                        onClick={() => handlePreviewFile(file)}
+                        className="p-1 text-blue-600 hover:text-blue-800"
+                        title="Preview Data"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    )}
+
                     <button
-                      onClick={() => removeFile(file.id)}
+                      onClick={
+                        () => { removeFile(file.id);
+                        setShowPreview(false);}
+                      }
                       className="p-1 text-red-600 hover:text-red-800"
                       title="Remove File"
                     >
@@ -472,14 +486,29 @@ interface PreviewTableProps {
   headers: string[];
   rows: string[][];
 }
-
 const PreviewTable: React.FC<PreviewTableProps> = ({ headers, rows }) => {
   const columns = React.useMemo<ColumnDef<Record<string, string>>[]>(
     () =>
       headers.map((header, index) => ({
         accessorKey: `col_${index}`,
-        header: () => <span className="font-semibold">{header || `Column ${index + 1}`}</span>,
-        cell: (info) => <span className="text-sm">{info.getValue() as string || '-'}</span>,
+        header: () => (
+          <span
+            className={`font-semibold ${!header.trim() ? "text-red-500" : "text-gray-700"}`}
+          >
+            {header.trim() || `Missing Header (${index + 1})`}
+          </span>
+        ),
+        cell: (info) => {
+          const value = info.getValue() as string;
+          const isMissing = !value || value.trim() === "" || value.trim() === '""';
+          return (
+            <span
+              className={`text-sm ${isMissing ? "text-red-600 italic" : "text-gray-900"}`}
+            >
+              {isMissing ? "(Missing)" : value}
+            </span>
+          );
+        },
       })),
     [headers]
   );
@@ -489,7 +518,7 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ headers, rows }) => {
       rows.map((row) => {
         const obj: Record<string, string> = {};
         row.forEach((value, idx) => {
-          obj[`col_${idx}`] = value || '';
+          obj[`col_${idx}`] = value || "";
         });
         return obj;
       }),
@@ -514,13 +543,13 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ headers, rows }) => {
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="HeaderGradient sticky top-0 z-10">
+          <thead className="sticky top-0 z-10 bg-gradient-to-b from-green-200 to-blue-100">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th 
-                    key={header.id} 
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200 last:border-r-0"
+                  <th
+                    key={header.id}
+                    className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider border-r border-gray-200 last:border-r-0"
                   >
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
@@ -530,14 +559,14 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ headers, rows }) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {table.getRowModel().rows.map((row, index) => (
-              <tr 
-                key={row.id} 
-                className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+              <tr
+                key={row.id}
+                className={`hover:bg-gray-50 ${index % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
               >
                 {row.getVisibleCells().map((cell) => (
-                  <td 
-                    key={cell.id} 
-                    className="px-4 py-3 whitespace-nowrap text-sm text-gray-900 border-r border-gray-200 last:border-r-0"
+                  <td
+                    key={cell.id}
+                    className="px-4 py-3 whitespace-nowrap text-sm border-r border-gray-200 last:border-r-0"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>

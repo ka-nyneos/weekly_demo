@@ -1,6 +1,6 @@
 import Section from "./Section";
 
-const InternalDealer = ["choose...", "Nishant Sharma", "Kanav Arora", "Shiddarth Bansal"];
+const InternalDealer = ["Choose...", "Nishant Sharma", "Kanav Arora", "Shiddarth Bansal"];
 
 const DealerDetails = () => {
   return (
@@ -10,7 +10,7 @@ const DealerDetails = () => {
           <label className="text-sm text-gray-600 mb-1">Internal Dealer</label>
           <select className="border p-2">
             {InternalDealer.map((dealer, idx) => (
-              <option key={idx} value={dealer === "choose..." ? "" : dealer}>
+              <option key={idx} value={dealer === "Choose..." ? "" : dealer}>
                 {dealer}
               </option>
             ))}

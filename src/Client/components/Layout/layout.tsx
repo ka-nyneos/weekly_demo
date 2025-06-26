@@ -24,7 +24,7 @@ const Layout: React.FC<LayoutProps> = ({
 
   const sidebarWidth = collapsed ? "4rem" : "16rem"; 
   return (
-    <div className="relative">
+    <div className="relative bg-slate-700">
       <Sidebar collapsed={collapsed} toggleCollapse={() => setCollapsed(!collapsed)} />
       <Navbar collapsed={collapsed} />
 
