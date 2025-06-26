@@ -65,7 +65,7 @@ const mockData: ExposureRequest[] = [
   {
     id: "2",
     refNo: "EXP-1002",
-    type: "LC",
+    type: "PO",
     bu: "Procurement",
     vendorBeneficiary: "XYZ Ltd",
     amount: 250000,
@@ -80,7 +80,7 @@ const mockData: ExposureRequest[] = [
   {
     id: "3",
     refNo: "EXP-1003",
-    type: "Loan",
+    type: "LC",
     bu: "Operations",
     vendorBeneficiary: "Delta Inc",
     amount: 750000,

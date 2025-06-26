@@ -33,7 +33,7 @@ function App() {
                 <Route path="/exposure-upload" element={<ExposureUpload />}></Route>
                 <Route path="/exposure-bucketing" element={<ExposureBucketing />}></Route>
                 <Route path="/FXBookingDashboard" element={<FXBookingDashboard />}></Route>
-                {/* <Route path="/exposure-bucketings" element={<ExposureBucketings />}></Route> */}
+                <Route path="/FxStatusDash" element={<FXBookingDashboard />}></Route>
                 <Route path="/hedging-proposal" element={<HedgingProposal />}></Route>
                 <Route path="/hedging-dashboard" element={<HedgingDashboard />}></Route>
                 <Route path="/fxbooking" element={<FXForwardBookingForm />}></Route>

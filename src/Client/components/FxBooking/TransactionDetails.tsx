@@ -3,7 +3,7 @@ import Section from "./Section";
 
 const TransactionDetails = () => (
   <Section title="Transaction Details">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
       <div className="flex flex-col">
         <label className="text-sm text-gray-600 mb-1">System Transaction ID</label>
         <input
@@ -26,3 +26,5 @@ const TransactionDetails = () => (
 );
 
 export default TransactionDetails;
+<div className="h-32 w-full " />
+

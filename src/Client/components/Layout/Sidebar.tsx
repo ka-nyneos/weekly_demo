@@ -21,6 +21,7 @@ import {
   ChevronDown,
   UserRoundCog,
   ChevronRight,
+  LayoutDashboard,
 } from "lucide-react";
 
 type SidebarProps = {
@@ -46,55 +47,46 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleCollapse }) => {
     {
       label: "Configuration",
       icon: <Wrench />,
-      subItems: [
-        { label: "Masters", path: "/masters", icon: <Bolt /> },
-      ],
+      subItems: [{ label: "Masters", path: "/masters", icon: <Bolt /> }],
     },
     {
-      label: "Settings", 
-      // path: "/settings", 
-      icon: <Settings />, 
+      label: "Settings",
+      icon: <Settings />,
       subItems: [
         { label: "Roles", path: "/roles", icon: <UserRoundCog /> },
         { label: "Permissions", path: "/permissions", icon: <HandCoins /> },
-        { label: "Users", path: "/user-creation", icon: <UserPlus />},
+        { label: "Users", path: "/user-creation", icon: <UserPlus /> },
       ],
     },
     { label: "Exposure Upload", path: "/exposure-upload", icon: <Upload /> },
     { label: "Exposure Bucketing", path: "/exposure-bucketing", icon: <BarChart2 /> },
     { label: "Hedging Proposal", path: "/hedging-proposal", icon: <FileText /> },
-    { label: "Hedging Dashboard", path: "/hedging-dashboard", icon: <FilePlus /> },
+    { label: "Hedging Dashboard", path: "/hedging-dashboard", icon: <LayoutDashboard /> },
     { label: "FX Booking", path: "/fxbooking", icon: <FilePlus /> },
-    { label: "FX Status", path: "/fxstatus", icon: <CheckCircle /> },
+    { label: "FX Status", path: "/FxStatusDash", icon: <CheckCircle /> },
+    // { label: "FX Status", path: "/fxstatus", icon: <CheckCircle /> },
     { label: "Logout", path: "/", icon: <LogOut /> },
   ];
 
-  // Keep submenus open that contain the current active path
   useEffect(() => {
     const newOpenSubMenus = new Set<string>();
-    
-    navItems.forEach(item => {
+    navItems.forEach((item) => {
       if (item.subItems) {
         const hasActiveChild = item.subItems.some(
-          subItem => subItem.path === location.pathname
+          (subItem) => subItem.path === location.pathname
         );
         if (hasActiveChild) {
           newOpenSubMenus.add(item.label);
         }
       }
     });
-
     setOpenSubMenus(newOpenSubMenus);
   }, [location.pathname]);
 
   const toggleSubMenu = (label: string) => {
-    setOpenSubMenus(prev => {
+    setOpenSubMenus((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(label)) {
-        newSet.delete(label);
-      } else {
-        newSet.add(label);
-      }
+      newSet.has(label) ? newSet.delete(label) : newSet.add(label);
       return newSet;
     });
   };
@@ -112,8 +104,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleCollapse }) => {
   const isItemOrSubItemActive = (item: NavItem): boolean => {
     if (item.path && location.pathname === item.path) return true;
     if (item.subItems) {
-      return item.subItems.some(subItem => 
-        subItem.path && location.pathname === subItem.path
+      return item.subItems.some(
+        (subItem) => subItem.path && location.pathname === subItem.path
       );
     }
     return false;
@@ -139,51 +131,60 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, toggleCollapse }) => {
           const isActive = isItemOrSubItemActive(item);
 
           return (
-            <div key={item.label} className="relative group w-full">
+            <div key={item.label} className="relative w-full">
               <button
                 onClick={() => handleItemClick(item)}
                 className={`flex items-center rounded px-3 py-2.5 transition-colors w-full text-medium ${
                   isActive
-                    ? "bg-green-500 font-medium" 
+                    ? "bg-green-500 font-medium"
                     : "hover:bg-green-400 font-medium"
                 }`}
               >
-                <span className="w-6 flex justify-center">{item.icon}</span>
+                {/* Icon with Tooltip Logic */}
+                <span className="w-6 flex justify-center group relative">
+                  {item.icon}
+
+                  {/* Tooltip only on icon hover in collapsed mode */}
+                  {collapsed && !isActive && (
+                    <div className="absolute left-[105%] top-1/2 -translate-y-1/2 z-50 px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <div className="whitespace-nowrap rounded bg-green-400 px-3 py-1.5 text-sm font-medium text-black shadow-lg">
+                        {item.label}
+                      </div>
+                    </div>
+                  )}
+                </span>
+
+                {/* Label and chevron for expanded mode */}
                 {!collapsed && (
                   <>
-                    <span className="ml-3 whitespace-nowrap text-left text- flex-1">
+                    <span className="ml-3 whitespace-nowrap flex-1 text-left">
                       {item.label}
                     </span>
                     {hasSubItems && (
                       <span className="w-4">
-                        {isSubMenuOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        {isSubMenuOpen ? (
+                          <ChevronDown size={16} />
+                        ) : (
+                          <ChevronRight size={16} />
+                        )}
                       </span>
                     )}
                   </>
                 )}
               </button>
 
-              {collapsed && (
-                <div className="absolute left-[105%] top-1/2 -translate-y-1/2 z-50 px-2 py-1">
-                  <div className="whitespace-nowrap rounded bg-green-400 px-3 py-1.5 text-sm font-medium text-black opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg">
-                    {item.label}
-                  </div>
-                </div>
-              )}
-
+              {/* Subitems - shown only when expanded */}
               {!collapsed && hasSubItems && isSubMenuOpen && (
                 <div className="ml-8 mt-1.5 space-y-1.5">
                   {item.subItems?.map((subItem) => (
                     <button
                       key={subItem.label}
                       onClick={() => {
-                        if (subItem.path) {
-                          navigate(subItem.path);
-                        }
+                        if (subItem.path) navigate(subItem.path);
                       }}
                       className={`flex items-center rounded px-3 py-2 transition-colors w-full ${
                         location.pathname === subItem.path
-                          ? "bg-green-600 font-medium" 
+                          ? "bg-green-600 font-medium"
                           : "hover:bg-green-500 font-medium"
                       }`}
                     >

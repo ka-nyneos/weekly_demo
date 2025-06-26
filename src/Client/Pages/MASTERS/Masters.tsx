@@ -15,8 +15,8 @@ export default function Masters() {
         return <ColorMaster />;
       case 'global':
         return <GlobalMaster />;      {/* Dropdown Selector */}
-      case 'bic':
-        return <BicMaster />;
+      // case 'bic':
+        // return <BicMaster />;
       default:
         return <div className="text-gray-500 italic">Please select a master to configure.</div>;
     }
@@ -36,7 +36,7 @@ export default function Masters() {
           >
             <option value="">-- Select --</option>
             <option value="color">Color Coding Master</option>
-            <option value="bic">Bic Master</option>
+            {/* <option value="bic">Bic Master</option> */}
             <option value="global">Deployment Master</option>
           </select>
         </div>

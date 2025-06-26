@@ -1,6 +1,7 @@
+// src/pages/user-creation.tsx
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Layout from "../../components/Layout/layout";
 import Button from "../../components/ui/Button";
@@ -15,192 +16,280 @@ type FormData = {
   mobile: string;
   address: string;
   businessUnitName: string;
-  officeStartTimeIST: string;
-  officeEndTimeIST: string;
 };
 
-const UserCreation = () => {
+type User = FormData & { createdAt: string };
+type RoleOption = { id: number; name: string };
+
+// Static default users
+const DEFAULT_USERS: User[] = [
+  {
+    processname: "initiatecreateuser",
+    authenticationType: "LDAP",
+    employeeName: "Alice Johnson",
+    usernameOrEmployeeId: "alice.j",
+    roleName: "MASTER MAKER",
+    email: "alice.johnson@example.com",
+    mobile: "+91-9876543210",
+    address: "123 Main St, City",
+    businessUnitName: "IT Unit",
+    createdAt: "2025-06-20 10:15 AM",
+  },
+  {
+    processname: "initiatecreateuser",
+    authenticationType: "LDAP",
+    employeeName: "Bob Smith",
+    usernameOrEmployeeId: "bob.s",
+    roleName: "operations",
+    email: "bob.smith@example.com",
+    mobile: "+91-9123456780",
+    address: "456 Side Ave, City",
+    businessUnitName: "Ops Unit",
+    createdAt: "2025-06-22 02:30 PM",
+  },
+  {
+    processname: "initiatecreateuser",
+    authenticationType: "LDAP",
+    employeeName: "Carol Lee",
+    usernameOrEmployeeId: "carol.l",
+    roleName: "UAM MAKER",
+    email: "carol.lee@example.com",
+    mobile: "+91-9988776655",
+    address: "789 Market Rd, City",
+    businessUnitName: "Quality Unit",
+    createdAt: "2025-06-25 09:45 AM",
+  },
+];
+
+const UserCreation: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [showButton, setShowButton] = useState(true);
-  const [title, setTitle] = useState("All Users");
-
   const { register, handleSubmit, reset } = useForm<FormData>();
 
-  const PageChange = () => {
+  // Dynamic users created via form
+  const [dynamicUsers, setDynamicUsers] = useState<User[]>(() => {
+    const stored = localStorage.getItem("users");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
+    }
+    return [];
+  });
+
+  // Persist dynamic users
+  useEffect(() => {
+    localStorage.setItem("users", JSON.stringify(dynamicUsers));
+  }, [dynamicUsers]);
+
+  // Load roles for dropdown
+  const [rolesList] = useState<RoleOption[]>(() => {
+    const stored = localStorage.getItem("roles");
+    if (stored) {
+      try {
+        const parsed: any[] = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed.map(r => ({ id: r.id, name: r.name }));
+        }
+      } catch {}
+    }
+    return [];
+  });
+
+  const openForm = () => {
     setShowForm(true);
     setShowButton(false);
-    setTitle("Create User Form");
   };
 
-  const onReset = () => {
+  const closeForm = () => {
     reset();
-  };
-
-  const onBack = () => {
     setShowForm(false);
     setShowButton(true);
-    setTitle("All Users");
   };
 
   const onSubmit = (data: FormData) => {
-    alert("Form submitted successfully!");
-    console.log("Form Data:", data);
-    reset();
-    setShowForm(false);
-    setShowButton(true);
-    setTitle("All Users");
+    const newUser: User = {
+      ...data,
+      createdAt: new Date().toLocaleString(),
+    };
+    setDynamicUsers(prev => [...prev, newUser]);
+    closeForm();
   };
 
-
+  // Combined list: static defaults always show, then dynamic ones
+  const allUsers = [...DEFAULT_USERS, ...dynamicUsers];
 
   return (
     <Layout
-      title={title}
+      title="All Users"
       showButton={showButton}
       buttonText="Create New User"
-      onButtonClick={PageChange}
+      onButtonClick={openForm}
     >
       {showForm && (
-        <div className="flex justify-center">
-        <div className="p-6 rounded-xl border border-gray-300 bg-white shadow-md space-y-6 flex-shrink-0 w-full max-w-[1500px]">
-          <h2 className="text-xl font-semibold">Create User Form</h2>
-
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="grid grid-cols-2 gap-x-6 gap-y-4 flex-shrink-0"
+            className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg"
           >
+            <h2 className="text-2xl font-bold mb-4">Create User</h2>
             <input
               type="hidden"
               value="initiatecreateuser"
               {...register("processname")}
             />
 
-            <div>
-              <label>Authentication Type</label>
-              <input
-                type="text"
-                defaultValue="LDAP"
-                {...register("authenticationType",{
-                    required: "Please enter your autentication type.",
-                })}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-            
-
-
-            <div>
-              <label>Employee Name</label>
-              <input
-                type="text"
-                {...register("employeeName", {
-                  required: "Please enter your employee name.",
-                })}
-                placeholder="Please enter your first employee name."
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label>Username / Employee ID</label>
-              <input
-                type="text"
-                {...register("usernameOrEmployeeId",{
-                    required: "Please enter your username or employee ID.",
-                })}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label>Role Name</label>
-              <select
-                {...register("roleName",{
-                    required: "Please enter your role name.",
-                })}
-                className="w-full p-2 border rounded"
-                
-              > 
-                <option value="" disabled selected hidden></option>
-                <option value="Admin">Admin</option>
-                <option value="User">User</option>
-              </select>
-            </div>
-
-            <div>
-              <label>Email</label>
-              <input
-                type="email"
-                {...register("email",{
-                    required: "Please enter your email.",
-                })}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label>Mobile</label>
-              <input
-                type="tel"
-                {...register("mobile",{value:""})}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label>Address</label>
-              <input
-                type="text"
-                {...register("address",{value:""})}
-                className="w-full p-2 border rounded"
-              />
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="block mb-1">Authentication Type</label>
+                <input
+                  type="text"
+                  defaultValue="LDAP"
+                  {...register("authenticationType", { required: true })}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Employee Name</label>
+                <input
+                  type="text"
+                  {...register("employeeName", { required: true })}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Username / Employee ID</label>
+                <input
+                  type="text"
+                  {...register("usernameOrEmployeeId", { required: true })}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Role Name</label>
+                <select
+                  {...register("roleName", { required: true })}
+                  className="w-full border rounded p-2"
+                >
+                  <option value="" disabled hidden>
+                    Select role
+                  </option>
+                  {rolesList.map(role => (
+                    <option key={role.id} value={role.name}>
+                      {role.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1">Email</label>
+                <input
+                  type="email"
+                  {...register("email", { required: true })}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Mobile</label>
+                <input
+                  type="tel"
+                  {...register("mobile")}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Address</label>
+                <input
+                  type="text"
+                  {...register("address")}
+                  className="w-full border rounded p-2"
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Business Unit Name</label>
+                <input
+                  type="text"
+                  {...register("businessUnitName")}
+                  className="w-full border rounded p-2"
+                />
+              </div>
             </div>
 
-            <div>
-              <label>Business Unit Name</label>
-              <input
-                type="text"
-                {...register("businessUnitName")}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label>Office Start Time (IST)</label>
-              <input
-                type="time"
-                {...register("officeStartTimeIST")}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div>
-              <label>Office End Time (IST)</label>
-              <input
-                type="time"
-                {...register("officeEndTimeIST")}
-                className="w-full p-2 border rounded"
-              />
-            </div>
-
-            <div className="col-span-2 flex justify-end gap-4 mt-4">
-              <Button type="button" onClick={onReset}>
-                <span className="text-white">Reset</span>
+            <div className="flex justify-end gap-3">
+              <Button
+                type="button"
+                color="Blue"
+                categories="Medium"
+                onClick={() => reset()}
+              >
+                Reset
               </Button>
-              <Button type="submit">
-                <span className="text-white">Submit</span>
+              <Button type="submit" color="Green" categories="Medium">
+                Submit
               </Button>
-
-              <Button type="button" onClick={onBack}>
-                <span className="text-white">Back</span>
+              <Button
+                type="button"
+                color="Red"
+                categories="Medium"
+                onClick={closeForm}
+              >
+                Back
               </Button>
             </div>
           </form>
         </div>
-        </div>
       )}
 
-      {!showForm && <h1>User Creation</h1>}
+      {/* Users List */}
+      <div className="bg-white rounded-xl shadow p-6 mt-6">
+        <h3 className="text-xl font-bold mb-4">Users List</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse border text-sm">
+            <thead>
+              <tr className="bg-indigo-50">
+                <th className="p-2 border">Employee Name</th>
+                <th className="p-2 border">Username/ID</th>
+                <th className="p-2 border">Role</th>
+                <th className="p-2 border">Email</th>
+                <th className="p-2 border">Mobile</th>
+                <th className="p-2 border">Address</th>
+                <th className="p-2 border">Business Unit</th>
+                <th className="p-2 border">Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allUsers.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={8}
+                    className="p-4 text-center text-gray-400"
+                  >
+                    No users created yet.
+                  </td>
+                </tr>
+              ) : (
+                allUsers.map((user, idx) => (
+                  <tr key={idx}>
+                    <td className="p-2 border">{user.employeeName}</td>
+                    <td className="p-2 border">
+                      {user.usernameOrEmployeeId}
+                    </td>
+                    <td className="p-2 border">{user.roleName}</td>
+                    <td className="p-2 border">{user.email}</td>
+                    <td className="p-2 border">{user.mobile}</td>
+                    <td className="p-2 border">{user.address}</td>
+                    <td className="p-2 border">
+                      {user.businessUnitName}
+                    </td>
+                    <td className="p-2 border">{user.createdAt}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </Layout>
   );
 };

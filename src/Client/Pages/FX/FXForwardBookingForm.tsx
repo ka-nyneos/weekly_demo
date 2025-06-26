@@ -18,59 +18,35 @@ const FXForwardBookingForm: React.FC = () => {
   return (
     <Layout title="FX Forward Booking Form">
       <div className="p-6  min-h-screen">
-        {/* Main container with grid layout */}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left side - Main form content */}
+
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg p-6 border-t-4 border border-gray-100">
-              {/* Themed sections */}
-              {/* <Section heading="Transaction Details"> */}
-                <TransactionDetails />
-              {/* </Section> */}
-              {/* <Section heading="Entity Details"> */}
-                <EntityDetails />
-              {/* </Section> */}
-              {/* <Section heading="Order Details"> */}
-                <OrderDetails />
-              {/* </Section> */}
-              {/* <Section heading="Delivery & Date Details"> */}
-                <DeliveryDateDetails />
-              {/* </Section> */}
-              {/* <Section heading="Financial Details"> */}
-                <FinancialDetails />
-              {/* </Section> */}
-              {/* <Section heading="Dealer Details"> */}
-                <DealerDetails />
-              {/* </Section> */}
-              {/* <Section heading="Additional Details"> */}
-                <AdditionalDetails />
-              {/* </Section> */}
 
-              {/* Action buttons */}
+                <TransactionDetails />
+
+                <EntityDetails />
+
+                <OrderDetails />
+
+                <DeliveryDateDetails />
+
+                <FinancialDetails />
+                <DealerDetails />
+                <AdditionalDetails />
+ 
               <div className="flex flex-wrap justify-center gap-4 mt-8">
-                {/* <button className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <Button color="Green" categories="Medium">
                   Submit Booking
-                </button> */}
-                <Button color="Blue" categories="Medium">
-                  Submit Booking
-                </Button>
-                {/* <button className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Print Form
-                </button> */}
-                {/* <button className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Save Draft
-                </button> */}
-                {/* <button className="bg-blue-900 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                  Reset Form
-                </button> */}
-                
-                <Button color="Blue" categories="Medium">
+                </Button>                
+                <Button color="Blue" categories="Medium" onClick={() => (window.print())}>
                   Print Form
                 </Button>
-                <Button color="Blue" categories="Medium">
+                <Button color="Green" categories="Medium">
                   Save Draft
                 </Button>
-                <Button color="Blue" categories="Medium">
+                <Button color="Red" categories="Medium">
                   Reset Form
                 </Button> 
               </div>

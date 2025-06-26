@@ -39,7 +39,7 @@ const FinancialDetails = () => (
 
       <div className="flex flex-col">
         <label className="text-sm text-gray-600 mb-1">Spot Rate</label>
-        <input className="border p-2" type="number" step="0.0001" placeholder="" />
+        <input className="border p-2" type="number" step="0.0001" placeholder="86.45" />
       </div>
 
       <div className="flex flex-col">
